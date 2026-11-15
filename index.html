@@ -354,7 +354,7 @@ async function rpc(fn,args){
 
 /* ---------- rules ---------- */
 function blank(){return{done:{},checks:{},hw:[],bag:{},les:{}}}
-function rec(k,create){let r=D[k];if(!r){r=blank();if(create)D[k]=r}r.done=r.done||{};r.checks=r.checks||{};r.hw=r.hw||[];r.bag=r.bag||{};r.les=r.les||{};return r}
+function rec(k,create){let r=D[k];if(!r){r=blank();if(create)D[k]=r}r.done=r.done||{};r.checks=r.checks||{};r.hw=r.hw||[];r.bag=r.bag||{};r.les=r.les||{};r.extra=r.extra||[];return r}
 function trainingAt(dow){return (C.training&&C.training[String(dow)])||''}
 const nextDow=dow=>(dow+1)%7;
 function partOf(t,dow){if(t.type==='train')return 'vakaras';return t.part}
@@ -388,11 +388,14 @@ function dayPts(d){
   raw.forEach(x=>o[x.id]=x.f);return o;
 }
 function P(t,d){const m=dayPts(d||today());return m[t.id]!=null?m[t.id]:(+t.pts||0)}
+function extrasOf(r){return (r.extra||[]).map(x=>Object.assign({type:'simple',part:'diena',icon:'⭐',timer:0,days:[],extra:true},x))}
+function findTask(id,k){return C.tasks.find(x=>x.id===id)||extrasOf(rec(k||keyOf(today()))).find(x=>x.id===id)}
 function summarize(k){
-  const d=fromKey(k),r=rec(k),ts=tasksFor(d),dow=d.getDay();
-  let sum=0;const missing=[];
-  const dp=dayPts(d);ts.forEach(t=>{if(r.done[t.id])sum+=(dp[t.id]||0);else missing.push(t.title)});
-  const max=+C.dailyMax||30,earned=Math.min(sum,max),allDone=ts.length>0&&missing.length===0;
+  const d=fromKey(k),r=rec(k),base=tasksFor(d),ex=extrasOf(r),ts=base.concat(ex),dow=d.getDay();
+  let sum=0,exSum=0,exMax=0;const missing=[];
+  const dp=dayPts(d);base.forEach(t=>{if(r.done[t.id])sum+=(dp[t.id]||0);else missing.push(t.title)});
+  ex.forEach(t=>{exMax+=(+t.pts||0);if(r.done[t.id])exSum+=(+t.pts||0);else missing.push(t.title)});
+  const bmax=+C.dailyMax||30,max=bmax+exMax,earned=Math.min(sum,bmax)+exSum,allDone=ts.length>0&&missing.length===0;
   let sat=0,sun=0,satDays=0;
   if(dow===6){satDays=satWindowCount(d).c;sat=satDays*(+C.satBonusPerDay||0)}
   if(dow===0){const hwT=ts.find(t=>t.type==='hw');if(hwT&&r.done[hwT.id]){const n=hwItems(r,d).filter(h=>h.done).length;sun=Math.max(1,n)*(+C.sunHwBonus||0)}}
@@ -477,6 +480,7 @@ function nextTask(ts,r,dow){
 }
 function sub(t,r,d){
   const dow=d.getDay();
+  if(t.extra)return 'Papildoma užduotis nuo tėvų';
   if(t.type==='train')return 'Rytoj treniruotė '+trainingAt(nextDow(dow))+' · apranga, sportbačiai, gertuvė';
   if(t.type==='check'){const n=SYSTEMS.filter(s=>r.checks[s.id]).length,lm=lessonsMarked(r,d);return 'Sistemos '+n+'/3'+(lm.ls.length?' · pamokos '+lm.m+'/'+lm.ls.length:'')}
   if(t.type==='hw'){const it=hwItems(r,d),n=it.length,lm=lessonsMarked(r,d);return n?it.filter(h=>h.done).length+' iš '+n+' padaryta':(lm.ls.length&&lm.m===lm.ls.length?'Rytojui nieko neužduota':'Pirma patikrink, kas užduota')}
@@ -641,7 +645,7 @@ function hwListHTML(r,tickable){
 
 /* ---------- actions ---------- */
 function markDone(id,extra){
-  const k=keyOf(today()),r=rec(k,true),t=C.tasks.find(x=>x.id===id);if(!t||r.done[id])return;
+  const k=keyOf(today()),r=rec(k,true),t=findTask(id,k);if(!t||r.done[id])return;
   r.done[id]=Date.now();
   const before=summarize(k);
   const s=stamp(k);
@@ -659,7 +663,7 @@ function markDone(id,extra){
   render();
 }
 function undo(){
-  if(!undoInfo)return;const {id,k}=undoInfo;undoInfo=null;const r=rec(k,true),t=C.tasks.find(x=>x.id===id);
+  if(!undoInfo)return;const {id,k}=undoInfo;undoInfo=null;const r=rec(k,true),t=findTask(id,k);
   delete r.done[id];
   saveDay(k,ROLE==='child'&&t?'↩️ '+name()+' atšaukė: '+t.title:null);
   hideToast();render();
@@ -678,7 +682,7 @@ function confetti(){
   let f=0;(function step(){x.clearRect(0,0,c.width,c.height);ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.4;p.r+=.2;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);x.restore()});if(++f<110)requestAnimationFrame(step);else{c.hidden=true}})();
 }
 function fmtLeft(){if(!timer)return '';const ms=Math.max(0,timer.end-Date.now()),s=Math.ceil(ms/1000);return pad(Math.floor(s/60))+':'+pad(s%60)}
-setInterval(()=>{if(!timer)return;const el=document.getElementById('tleft');if(el)el.textContent=fmtLeft();if(Date.now()>=timer.end){const t=C.tasks.find(x=>x.id===timer.id);timer=null;ding(true);toast('Laikas baigėsi! Ar padarei: '+(t?t.title:'')+'?');render()}},1000);
+setInterval(()=>{if(!timer)return;const el=document.getElementById('tleft');if(el)el.textContent=fmtLeft();if(Date.now()>=timer.end){const t=findTask(timer.id);timer=null;ding(true);toast('Laikas baigėsi! Ar padarei: '+(t?t.title:'')+'?');render()}},1000);
 
 /* ---------- render: parent ---------- */
 function renderParent(){
@@ -700,7 +704,11 @@ function parentToday(d,k){
   h+='<div class="panel"><h3>'+esc(name())+' šiandien</h3>';
   h+='<p>Taškai '+s.earned+'/'+s.max+(s.sat?' · savaitės premija +'+s.sat:'')+(s.sun?' · ND premija +'+s.sun:'')+(pn.amount?' · bauda −'+pn.amount:'')+' = <b>'+s.screen+' min</b> ekrano laiko.</p>';
   if(!s.allDone)h+='<p class="note">Jei šiandien liks neatliktų užduočių, rytoj bauda bus −'+pn.next+' min.</p>';
-  h+=s.ts.map(t=>{const dn=r.done[t.id];return '<div class="ptask"><span style="font-size:22px">'+esc(t.icon)+'</span><span class="t">'+esc(t.title)+'<small>+'+P(t,d)+(dn?' · atlikta '+new Date(dn).toLocaleTimeString('lt-LT',{hour:'2-digit',minute:'2-digit'}):'')+'</small></span><button class="toggle'+(dn?' on':'')+'" data-act="p-toggle" data-id="'+t.id+'">'+(dn?'Atlikta ✓':'Neatlikta')+'</button></div>'}).join('');
+  h+=s.ts.map(t=>{const dn=r.done[t.id];return '<div class="ptask"><span style="font-size:22px">'+esc(t.icon)+'</span><span class="t">'+esc(t.title)+'<small>+'+P(t,d)+(dn?' · atlikta '+new Date(dn).toLocaleTimeString('lt-LT',{hour:'2-digit',minute:'2-digit'}):'')+'</small></span><button class="toggle'+(dn?' on':'')+'" data-act="p-toggle" data-id="'+t.id+'">'+(dn?'Atlikta ✓':'Neatlikta')+'</button>'+(t.extra?'<button class="del" data-act="x-del" data-id="'+t.id+'" aria-label="Ištrinti užduotį" style="border:0;background:transparent;font-size:20px;color:var(--ink-soft);width:32px;height:36px">×</button>':'')+'</div>'}).join('');
+  {const cp=PARTS[curPart()].id;
+  h+='<div class="xadd"><h3 style="margin-top:6px">➕ Papildoma užduotis šiandien</h3><p class="note">Tik šiai dienai. Jos taškai pridedami prie 30, o pilnai dienai ją irgi reikia atlikti. Pastovias užduotis kurkite skiltyje „Nustatymai“.</p>'+
+    '<div class="add" style="margin-top:8px"><input type="text" id="x-title" placeholder="Pvz. Išnešti šiukšles" maxlength="60" autocomplete="off"><input type="number" id="x-pts" value="3" min="1" max="30" aria-label="Taškai" style="width:72px;flex:none"></div>'+
+    '<div class="add" style="margin-top:8px"><select id="x-part" aria-label="Dienos dalis">'+PARTS.map(x=>'<option value="'+x.id+'"'+(x.id===cp?' selected':'')+'>'+x.label+'</option>').join('')+'</select><button class="small-btn" data-act="x-add">Pridėti</button></div></div>'}
   h+='</div>';
   const pls=schoolLessons(d);
   const prow=(t,cls,st)=>'<div class="ptask"><span class="t">'+t+'</span><span class="'+cls+'">'+st+'</span></div>';
@@ -821,11 +829,11 @@ document.addEventListener('touchmove',e=>{if(e.touches&&e.touches.length>1)e.pre
 document.addEventListener('click',e=>{
   const el=e.target.closest('[data-act]');if(!el)return;
   const a=el.dataset.act,k=keyOf(today());
-  if(a==='task'){const t=C.tasks.find(x=>x.id===el.dataset.id);const r=rec(k);if(['check','hw','bag'].includes(t.type))openSheet(t.id);else if(r.done[t.id]){undoInfo={id:t.id,k};toast('Jau atlikta ✓',true)}else markDone(t.id);return}
+  if(a==='task'){const t=findTask(el.dataset.id);const r=rec(k);if(['check','hw','bag'].includes(t.type))openSheet(t.id);else if(r.done[t.id]){undoInfo={id:t.id,k};toast('Jau atlikta ✓',true)}else markDone(t.id);return}
   if(a==='done'){markDone(el.dataset.id);return}
   if(a==='open'){openSheet(el.dataset.id);return}
   if(a==='undo'){undo();return}
-  if(a==='timer'){const t=C.tasks.find(x=>x.id===el.dataset.id);timer={id:t.id,end:Date.now()+t.timer*60000};ding(false);render();return}
+  if(a==='timer'){const t=findTask(el.dataset.id);timer={id:t.id,end:Date.now()+t.timer*60000};ding(false);render();return}
   if(a==='timer-stop'){timer=null;render();return}
   if(a==='sheet-close'){saveLesText();closeSheet();return}
   if(a==='tt-scroll'){const t=document.getElementById('tvarkarastis');if(t)t.scrollIntoView({block:'start'});return}
@@ -845,6 +853,10 @@ return}
   if(a==='bag-done'){const t=C.tasks.find(x=>x.id===sheetFor),de=dayExtras(today());closeSheet();markDone(t.id,de.items.length?'💶 Įdėjo: '+de.items.join(', '):null);return}
   // parent
   if(a==='tab'){if(tab==='set'&&dirty&&el.dataset.tab!=='set'){toast('Pirma išsaugokite nustatymus');return}tab=el.dataset.tab;if(tab==='set'&&!dirty)draft=null;render();scrollTo(0,0);return}
+  if(a==='x-add'){const ti=document.getElementById('x-title'),title=(ti.value||'').trim().slice(0,60);if(!title){ti.focus();return}
+    const pts=Math.min(30,Math.max(1,parseInt(document.getElementById('x-pts').value,10)||1)),part=document.getElementById('x-part').value||'diena';
+    const r=rec(k,true);r.extra.push({id:'x'+Date.now().toString(36),title,pts,part});saveDay(k,'➕ Pridėta užduotis šiandien: '+title+' (+'+pts+')');toast('Užduotis pridėta');render();return}
+  if(a==='x-del'){const r=rec(k,true),id=el.dataset.id;r.extra=r.extra.filter(x=>x.id!==id);delete r.done[id];saveDay(k,null);render();return}
   if(a==='p-toggle'){const r=rec(k,true);const id=el.dataset.id;if(r.done[id])delete r.done[id];else r.done[id]=Date.now();saveDay(k,null);render();return}
   if(a==='tday'){const t=draft.tasks[+el.dataset.i];const dw=+el.dataset.d;t.days=t.days||[];t.days=t.days.includes(dw)?t.days.filter(x=>x!==dw):t.days.concat(dw);el.classList.toggle('on');markDirty();refreshSums();return}
   if(a==='tdel'){if(el.dataset.confirm!=='1'){el.dataset.confirm='1';el.textContent='Tikrai ištrinti?';return}draft.tasks.splice(+el.dataset.i,1);markDirty();renderParent();return}
