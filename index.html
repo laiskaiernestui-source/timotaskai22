@@ -128,6 +128,7 @@ h1,h2,h3{font-family:var(--f-display);font-weight:800;line-height:1.1;margin:0;t
 .big{flex:1 1 180px;min-height:60px;border:0;border-radius:16px;background:var(--accent);color:var(--accent-ink);font-family:var(--f-display);font-size:22px;padding:10px 16px;box-shadow:0 4px 0 rgba(0,0,0,.18)}
 .big:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
 .big:disabled{opacity:.45;cursor:not-allowed}
+.sheet .big,.sheet .ghost{flex:0 0 auto}
 .ghost{flex:0 1 auto;min-height:60px;border:2px solid var(--line);background:var(--surface);border-radius:16px;font-weight:800;padding:8px 14px}
 .timer{display:flex;align-items:center;gap:12px;background:var(--surface-2);border-radius:14px;padding:10px 12px}
 .timer .led{color:var(--accent);text-shadow:none;font-size:34px}
@@ -575,11 +576,8 @@ function renderSheet(){
         return '<div class="lrow '+(st.s||'todo')+'"><div class="lhead"><span class="ln">'+(i+1)+'. '+esc(l)+'</span><div class="lseg">'+
           '<button class="n'+(st.s==='none'?' on':'')+'" data-act="les" data-l="'+esc(l)+'" data-s="none">Nieko</button>'+
           '<button class="h'+(hw?' on':'')+'" data-act="les" data-l="'+esc(l)+'" data-s="hw">Užduota</button></div></div>'+
-          (hw?'<input type="text" class="les-text" data-les="'+esc(l)+'" value="'+esc(st.text||'')+'" placeholder="Ką uždavė? Pvz. 23 psl. 4 užd." maxlength="120" autocomplete="off">':'')+'</div>'}).join('');
+          '</div>'}).join('');
     }
-    b+='<div class="step">'+(ls.length?'3. Uždavė kitai dienai? Įrašyk':'2. Ką uždavė? Įrašyk kiekvieną darbą')+'</div>';
-    b+=hwAddHTML(nd);
-    b+=r.hw.length?hwListHTML(r,false):'';
     const allSys=SYSTEMS.every(sy=>r.checks[sy.id]),allLes=ls.every(l=>r.les[l]&&r.les[l].s),all=allSys&&allLes;
     b+=done?'<div class="hint">Jau patikrinta ✓</div>':'<button class="big" data-act="check-done" '+(all?'':'disabled')+'>Patikrinau! +'+t.pts+'</button>'+(all?'':'<p class="note">'+(!allSys&&!allLes?'Pažymėk visas tris sistemas ir kiekvieną pamoką.':!allSys?'Pažymėk visas tris sistemas.':'Pažymėk kiekvieną pamoką: „Nieko“ arba „Užduota“.')+'</p>');
   }else if(t.type==='hw'){
@@ -587,10 +585,9 @@ function renderSheet(){
     if(ct&&tasksFor(d).includes(ct)&&!r.done[ct.id])b+='<div class="hint">Pirma patikrink TAMO, Eduka ir Google Classroom, kas užduota.</div>';
     const items=hwItems(r,d),lm=lessonsMarked(r,d);
     if(items.length){
-      b+='<div class="step">Pažymėk kiekvieną padarytą darbą</div>';
-      b+=items.map(it=>'<div class="row'+(it.done?' on':'')+'"><button class="rowbtn" data-act="'+(it.kind==='les'?'les-tick" data-l="'+esc(it.l):'hw-tick" data-i="'+it.i)+'"><span class="ck">✓</span><span class="t">'+(it.kind==='les'?esc(it.l)+(it.text?' — '+esc(it.text):''):esc(it.text))+'</span></button>'+(it.kind==='x'?'<button class="del" data-act="hw-del" data-i="'+it.i+'" aria-label="Ištrinti">×</button>':'')+'</div>').join('');
-    }else b+='<p class="note">'+(lm.ls.length&&lm.m===lm.ls.length?'Rytojaus pamokoms nieko neužduota.':'Kol kas nieko neįrašyta.')+'</p>';
-    b+='<div class="step">Dar ką nors uždavė?</div>'+hwAddHTML(nd);
+      b+='<div class="step">Užduota šioms pamokoms. Padarei? Pažymėk:</div>';
+      b+=items.map(it=>'<div class="row'+(it.done?' on':'')+'"><button class="rowbtn" data-act="'+(it.kind==='les'?'les-tick" data-l="'+esc(it.l):'hw-tick" data-i="'+it.i)+'"><span class="ck">✓</span><span class="t">'+(it.kind==='les'?esc(it.l):esc(it.text))+'</span></button>'+(it.kind==='x'?'<button class="del" data-act="hw-del" data-i="'+it.i+'" aria-label="Ištrinti">×</button>':'')+'</div>').join('');
+    }else b+='<p class="note">'+(lm.ls.length&&lm.m===lm.ls.length?'Rytojaus pamokoms nieko neužduota.':'Kol kas nepažymėta, kam kas užduota.')+'</p>';
     if(d.getDay()===0)b+='<div class="hint">Sekmadienį už kiekvieną padarytą namų darbą gausi +'+C.sunHwBonus+' min!</div>';
     const n=items.length,allDone=n>0&&items.every(h=>h.done);
     if(done)b+='<div class="hint">Namų darbai padaryti ✓</div>';
@@ -813,10 +810,10 @@ document.addEventListener('click',e=>{
   if(a==='hw-del'){const r=rec(k,true);r.hw.splice(+el.dataset.i,1);saveDay(k,null);renderSheet();render();return}
   if(a==='hw-tick'){const r=rec(k,true);const h=r.hw[+el.dataset.i];h.done=!h.done;saveDay(k,null);renderSheet();render();return}
   if(a==='les'){saveLesText();const r=rec(k,true),l=el.dataset.l;r.les[l]=Object.assign({},r.les[l],{s:el.dataset.s});saveDay(k,null);renderSheet();render();
-    if(el.dataset.s==='hw'){const inp=[...document.querySelectorAll('.les-text')].find(x=>x.dataset.les===l);if(inp&&!inp.value)inp.focus()}return}
+return}
   if(a==='les-tick'){const r=rec(k,true),st=r.les[el.dataset.l];if(st){st.done=!st.done;saveDay(k,null)}renderSheet();render();return}
   if(a==='check-done'){saveLesText();const d=today(),r=rec(k);const t=C.tasks.find(x=>x.id===sheetFor);
-    const lines=schoolLessons(d).map(l=>{const st=r.les[l]||{};return '• '+l+': '+(st.s==='hw'?(st.text||'užduota'):'nieko')}).concat(r.hw.map(h=>'• '+h.text));
+    const lines=schoolLessons(d).map(l=>{const st=r.les[l]||{};return '• '+l+': '+(st.s==='hw'?'užduota':'nieko')}).concat(r.hw.map(h=>'• '+h.text));
     closeSheet();markDone(t.id,lines.length?'Rytojui:\n'+lines.join('\n'):'Užduota: nieko neįrašyta');return}
   if(a==='hw-done'||a==='hw-none'){const t=C.tasks.find(x=>x.id===sheetFor);closeSheet();markDone(t.id,a==='hw-none'?'Pažymėjo: nieko neužduota':null);return}
   if(a==='bag'){const r=rec(k,true);const it=el.dataset.item;r.bag[it]=!r.bag[it];saveDay(k,null);renderSheet();return}
