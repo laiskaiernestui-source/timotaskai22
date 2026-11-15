@@ -2,7 +2,7 @@
 <html lang="lt">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Taškų lenta</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -46,7 +46,8 @@
   color-scheme:dark;
 }
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;touch-action:pan-x pan-y}
+button,a,input,select,textarea,label{touch-action:manipulation}
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.4;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
@@ -167,7 +168,7 @@ h1,h2,h3{font-family:var(--f-display);font-weight:800;line-height:1.1;margin:0;t
 .row .del{border:0;background:transparent;font-size:20px;color:var(--ink-soft);width:36px;height:36px}
 .add{display:flex;gap:8px}
 .add input{flex:1;min-width:0}
-input[type=text],input[type=number],input[type=time],input[type=date],select,textarea{font:inherit;font-weight:700;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:10px 12px;min-height:48px;width:100%}
+input[type=text],input[type=number],input[type=time],input[type=date],select,textarea{font:inherit;font-size:16px;font-weight:700;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:10px 12px;min-height:48px;width:100%}
 textarea{min-height:96px;resize:vertical}
 .small-btn{border:0;background:var(--ink);color:var(--bg);font-weight:800;border-radius:12px;padding:0 16px;min-height:48px;white-space:nowrap}
 .qchips{display:flex;flex-wrap:wrap;gap:6px}
@@ -811,6 +812,10 @@ async function saveConfig(){
   catch(e){toast('Nepavyko išsaugoti: '+e.message)}
 }
 function markDirty(){dirty=true;const b=document.querySelector('[data-act="save-config"]');if(b){b.disabled=false;b.textContent='Išsaugoti nustatymus'}}
+
+/* ---------- no zoom (iPhone) ---------- */
+['gesturestart','gesturechange','gestureend'].forEach(ev=>document.addEventListener(ev,e=>e.preventDefault(),{passive:false}));
+document.addEventListener('touchmove',e=>{if(e.touches&&e.touches.length>1)e.preventDefault()},{passive:false});
 
 /* ---------- events ---------- */
 document.addEventListener('click',e=>{
