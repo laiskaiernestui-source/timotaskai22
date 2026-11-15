@@ -288,10 +288,10 @@ function defaultConfig(){return{
     'Lietuvių k.':['Pratybos','Sąsiuvinis'],
     'Matematika':['Pratybos','Sąsiuvinis'],
     'Pasaulio pažinimas':['Pratybos'],
-    'Anglų k.':['Pratybos'],
+    'Anglų k.':['Pratybos','Sąsiuvinis','Žodynėlis'],
     'Kūno kultūra':['Sportinė apranga','Sportbačiai'],
-    'Dailė ir technologijos':['Dailės priemonės'],
-    'Muzika':['Muzikos sąsiuvinis'],
+    'Dailė ir technologijos':[],
+    'Muzika':[],
     'Etika':['Sąsiuvinis'],
     'Šokis':['Patogūs drabužiai']
   },
@@ -445,7 +445,7 @@ function nextSchoolDay(d){let x=addDays(d,1);for(let i=0;i<7&&!(x.getDay()>=1&&x
 function lessonsOf(d){return (C.timetable&&C.timetable[String(d.getDay())])||[]}
 function schoolLessons(d){return [...new Set(lessonsOf(nextSchoolDay(d)))]}
 function lessonMap(q){return (q||C).lessonItems||defaultConfig().lessonItems}
-function itemsForLesson(l){const m=lessonMap(),n=l.trim().toLowerCase(),key=Object.keys(m).find(x=>x.trim().toLowerCase()===n);return key&&m[key]&&m[key].length?m[key]:['Sąsiuviniai ir pratybos']}
+function itemsForLesson(l){const m=lessonMap(),n=l.trim().toLowerCase(),key=Object.keys(m).find(x=>x.trim().toLowerCase()===n);return key?(m[key]||[]):['Sąsiuviniai ir pratybos']}
 function hwItems(r,d){
   return schoolLessons(d).filter(l=>r.les[l]&&r.les[l].s==='hw').map(l=>({kind:'les',l,text:r.les[l].text||'',done:!!r.les[l].done}))
     .concat(r.hw.map((h,i)=>({kind:'x',i,text:h.text,done:!!h.done})));
@@ -454,7 +454,7 @@ function lessonsMarked(r,d){const ls=schoolLessons(d);return{ls,m:ls.filter(l=>r
 function bagByDay(q){return (q||C).bagByDay||defaultConfig().bagByDay}
 function dayExtras(d){const nd=nextSchoolDay(d);return {nd,items:bagByDay()[String(nd.getDay())]||[]}}
 function bagGroups(d){
-  const g=schoolLessons(d).map(l=>({title:l,icon:'📘',items:itemsForLesson(l).map(it=>({key:l+' · '+it,label:it}))}));
+  const g=schoolLessons(d).filter(l=>itemsForLesson(l).length).map(l=>({title:l,icon:'📘',items:itemsForLesson(l).map(it=>({key:l+' · '+it,label:it}))}));
   {const de=dayExtras(d);if(de.items.length)g.unshift({title:DAY_LONG[de.nd.getDay()].replace(/is$/,'iui')+' būtinai',icon:'💶',items:de.items.map(it=>({key:'d'+de.nd.getDay()+' · '+it,label:it}))})}
   if((C.bagExtras||[]).length)g.push({title:'Visada kuprinėje',icon:'🎒',items:C.bagExtras.map(it=>({key:it,label:it}))});
   return g;
@@ -734,7 +734,7 @@ function parentSettings(){
     '<label class="f">Papildomai kuprinėje tam tikrą dieną<textarea id="bag-day" data-bd="1" rows="3">'+esc(Object.entries(bagByDay(q)).map(([dw,a])=>DAY_LONG[+dw]+': '+(a||[]).join(', ')).join('\n'))+'</textarea></label>'+
     '<p class="note">Pvz. „Pirmadienis: Grynieji pietų pinigai“. Vaikas tai matys, kai vakare kraus kuprinę tai dienai.</p>'+
     '<label class="f">Ką dėti į kuprinę kiekvienai pamokai<textarea id="les-items" data-li="1" rows="9">'+esc(lessonItemsText(q))+'</textarea></label>'+
-    '<p class="note">Viena pamoka eilutėje: „Pamoka: daiktas, daiktas“. Pavadinimas turi sutapti su tvarkaraščiu. Jei pamokos čia nėra, vaikas matys „Sąsiuviniai ir pratybos“.</p></div>';
+    '<p class="note">Viena pamoka eilutėje: „Pamoka: daiktas, daiktas“. Pavadinimas turi sutapti su tvarkaraščiu. Jei po dvitaškio tuščia, tai pamokai nieko nereikia.</p></div>';
   // tasks
   const sums=WEEK_ORDER.map(dw=>{const s=q.tasks.filter(t=>t.type==='train'?!!(q.training||{})[dw]:(t.days||[]).includes(dw)).reduce((a,t)=>a+(+t.pts||0),0);return '<span class="'+(s===+q.dailyMax?'':'bad')+'">'+DAY_SHORT[dw]+' '+s+'</span>'}).join('');
   h+='<div class="panel"><h3>Užduotys</h3><p class="note">Taškų suma kiekvienai dienai (turėtų būti '+q.dailyMax+'):</p><div class="sums">'+sums+'</div>';
