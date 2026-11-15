@@ -295,6 +295,7 @@ function defaultConfig(){return{
     'Etika':['Sąsiuvinis'],
     'Šokis':['Patogūs drabužiai']
   },
+  bagByDay:{'1':['Grynieji pietų pinigai (paprašyk tėvų)']},
   bagExtras:['Penalas','Gertuvė su vandeniu','Priešpiečių dėžutė','Padaryti namų darbai'],
   tasks:[
     {id:'t1',icon:'👕',title:'Apsirengti ir papusryčiauti',pts:3,part:'rytas',days:[1,2,3,4,5],type:'simple',timer:0},
@@ -450,8 +451,11 @@ function hwItems(r,d){
     .concat(r.hw.map((h,i)=>({kind:'x',i,text:h.text,done:!!h.done})));
 }
 function lessonsMarked(r,d){const ls=schoolLessons(d);return{ls,m:ls.filter(l=>r.les[l]&&r.les[l].s).length}}
+function bagByDay(q){return (q||C).bagByDay||defaultConfig().bagByDay}
+function dayExtras(d){const nd=nextSchoolDay(d);return {nd,items:bagByDay()[String(nd.getDay())]||[]}}
 function bagGroups(d){
   const g=schoolLessons(d).map(l=>({title:l,icon:'📘',items:itemsForLesson(l).map(it=>({key:l+' · '+it,label:it}))}));
+  {const de=dayExtras(d);if(de.items.length)g.unshift({title:DAY_LONG[de.nd.getDay()].replace(/is$/,'iui')+' būtinai',icon:'💶',items:de.items.map(it=>({key:'d'+de.nd.getDay()+' · '+it,label:it}))})}
   if((C.bagExtras||[]).length)g.push({title:'Visada kuprinėje',icon:'🎒',items:C.bagExtras.map(it=>({key:it,label:it}))});
   return g;
 }
@@ -465,7 +469,7 @@ function sub(t,r,d){
   if(t.type==='train')return 'Treniruotė '+trainingAt(dow);
   if(t.type==='check'){const n=SYSTEMS.filter(s=>r.checks[s.id]).length,lm=lessonsMarked(r,d);return 'Sistemos '+n+'/3'+(lm.ls.length?' · pamokos '+lm.m+'/'+lm.ls.length:'')}
   if(t.type==='hw'){const it=hwItems(r,d),n=it.length,lm=lessonsMarked(r,d);return n?it.filter(h=>h.done).length+' iš '+n+' padaryta':(lm.ls.length&&lm.m===lm.ls.length?'Rytojui nieko neužduota':'Pirma patikrink, kas užduota')}
-  if(t.type==='bag'){const it=bagItems(d);return 'Sudėta '+it.filter(x=>r.bag[x]).length+' iš '+it.length+' · '+DAY_LONG[nextSchoolDay(d).getDay()].toLowerCase()}
+  if(t.type==='bag'){const it=bagItems(d);const de=dayExtras(d);return 'Sudėta '+it.filter(x=>r.bag[x]).length+' iš '+it.length+' · '+DAY_LONG[nextSchoolDay(d).getDay()].toLowerCase()+(de.items.length?' · 💶 '+de.items.join(', '):'')}
   if(t.timer)return 'Laikmatis '+t.timer+' min';
   return '';
 }
@@ -727,6 +731,8 @@ function parentSettings(){
   h+='<div class="panel"><h3>Krepšinio treniruotės</h3><div class="grid2">'+WEEK_ORDER.map(dw=>'<label class="f">'+DAY_LONG[dw]+'<input type="time" id="tr-'+dw+'" data-tr="'+dw+'" value="'+esc((q.training||{})[dw]||'')+'"></label>').join('')+'</div><p class="note">Palikite tuščią, jei tą dieną treniruotės nėra.</p></div>';
   h+='<div class="panel"><h3>Pamokų tvarkaraštis</h3><p class="note">Viena pamoka eilutėje, iš eilės.</p><div class="grid2">'+[1,2,3,4,5].map(dw=>'<label class="f">'+DAY_LONG[dw]+'<textarea id="tt-'+dw+'" data-tt="'+dw+'" rows="6">'+esc(((q.timetable||{})[dw]||[]).join('\n'))+'</textarea></label>').join('')+'</div>'+
     '<label class="f">Kuprinėje visada (po vieną eilutėje)<textarea id="bag-extra" data-bag="1" rows="4">'+esc((q.bagExtras||[]).join('\n'))+'</textarea></label>'+
+    '<label class="f">Papildomai kuprinėje tam tikrą dieną<textarea id="bag-day" data-bd="1" rows="3">'+esc(Object.entries(bagByDay(q)).map(([dw,a])=>DAY_LONG[+dw]+': '+(a||[]).join(', ')).join('\n'))+'</textarea></label>'+
+    '<p class="note">Pvz. „Pirmadienis: Grynieji pietų pinigai“. Vaikas tai matys, kai vakare kraus kuprinę tai dienai.</p>'+
     '<label class="f">Ką dėti į kuprinę kiekvienai pamokai<textarea id="les-items" data-li="1" rows="9">'+esc(lessonItemsText(q))+'</textarea></label>'+
     '<p class="note">Viena pamoka eilutėje: „Pamoka: daiktas, daiktas“. Pavadinimas turi sutapti su tvarkaraščiu. Jei pamokos čia nėra, vaikas matys „Knygos ir sąsiuviniai“.</p></div>';
   // tasks
@@ -817,7 +823,7 @@ return}
     closeSheet();markDone(t.id,lines.length?'Rytojui:\n'+lines.join('\n'):'Užduota: nieko neįrašyta');return}
   if(a==='hw-done'||a==='hw-none'){const t=C.tasks.find(x=>x.id===sheetFor);closeSheet();markDone(t.id,a==='hw-none'?'Pažymėjo: nieko neužduota':null);return}
   if(a==='bag'){const r=rec(k,true);const it=el.dataset.item;r.bag[it]=!r.bag[it];saveDay(k,null);renderSheet();return}
-  if(a==='bag-done'){const t=C.tasks.find(x=>x.id===sheetFor);closeSheet();markDone(t.id);return}
+  if(a==='bag-done'){const t=C.tasks.find(x=>x.id===sheetFor),de=dayExtras(today());closeSheet();markDone(t.id,de.items.length?'💶 Įdėjo: '+de.items.join(', '):null);return}
   // parent
   if(a==='tab'){if(tab==='set'&&dirty&&el.dataset.tab!=='set'){toast('Pirma išsaugokite nustatymus');return}tab=el.dataset.tab;if(tab==='set'&&!dirty)draft=null;render();scrollTo(0,0);return}
   if(a==='p-toggle'){const r=rec(k,true);const id=el.dataset.id;if(r.done[id])delete r.done[id];else r.done[id]=Date.now();saveDay(k,null);render();return}
@@ -842,6 +848,7 @@ document.addEventListener('input',e=>{
   else if(el.dataset.tr){draft.training=draft.training||{};if(el.value)draft.training[el.dataset.tr]=el.value;else delete draft.training[el.dataset.tr];markDirty();refreshSums()}
   else if(el.dataset.tt){draft.timetable=draft.timetable||{};draft.timetable[el.dataset.tt]=el.value.split('\n').map(s=>s.trim()).filter(Boolean);draft.ttExample=false;markDirty()}
   else if(el.dataset.bag){draft.bagExtras=el.value.split('\n').map(s=>s.trim()).filter(Boolean);markDirty()}
+  else if(el.dataset.bd){const o={};el.value.split('\n').forEach(line=>{const i=line.indexOf(':');if(i<1)return;const nm=line.slice(0,i).trim().toLowerCase();let dw=DAY_LONG.findIndex(x=>x.toLowerCase()===nm);if(dw<0)dw=DAY_SHORT.findIndex(x=>x.toLowerCase()===nm);if(dw<0)return;const its=line.slice(i+1).split(',').map(x=>x.trim()).filter(Boolean);if(its.length)o[dw]=its});draft.bagByDay=o;markDirty()}
   else if(el.dataset.li){draft.lessonItems=parseLessonItems(el.value);markDirty()}
   else if(el.dataset.ti){const t=draft.tasks[+el.dataset.ti];t[el.dataset.f]=el.value;markDirty();if(el.dataset.f==='pts')refreshSums()}
 });
