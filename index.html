@@ -1,0 +1,781 @@
+<!doctype html>
+<html lang="lt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Taškų lenta</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Taškai">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#eef1f6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b1120" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Bungee&family=Nunito:wght@500;700;800;900&display=swap">
+<style>
+/* Layout: one phone-width column; dark LED scoreboard on top, court-orange "next shot" card, task rows below. */
+:root{
+  --bg:#eef1f6; --surface:#ffffff; --surface-2:#e4e9f1; --ink:#14213d; --ink-soft:#56627d; --line:#d4dbe7;
+  --accent:#e8681f; --accent-ink:#ffffff; --accent-soft:#fde3d2;
+  --good:#1d9459; --good-soft:#d6f1e2; --bad:#c8372d; --bad-soft:#fbe0dd; --gold:#c98a00; --gold-soft:#fff1c9;
+  --wood:#e9c48f; --board:#0f1626; --board-line:#26314a; --led:#ffb21f; --led-soft:#8a6a2a; --board-ink:#d8e0f0;
+  --shadow:0 1px 2px rgba(20,33,61,.08),0 6px 18px rgba(20,33,61,.08);
+  --f-display:"Baloo 2","Arial Rounded MT Bold","Trebuchet MS",system-ui,sans-serif;
+  --f-body:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-led:"Bungee","Baloo 2",ui-monospace,monospace;
+  --r:16px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0b1120; --surface:#151e34; --surface-2:#1d2843; --ink:#e9eef8; --ink-soft:#9eabc7; --line:#28344f;
+  --accent:#ff7a2e; --accent-ink:#1a0d04; --accent-soft:#3a2214;
+  --good:#3ccf86; --good-soft:#133524; --bad:#ff6b5e; --bad-soft:#3a1714; --gold:#ffc53d; --gold-soft:#3a2d0c;
+  --wood:#7a5a33; --board:#060a14; --board-line:#1e2840; --led:#ffb21f; --led-soft:#7a5d22; --board-ink:#c9d3e8;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0b1120; --surface:#151e34; --surface-2:#1d2843; --ink:#e9eef8; --ink-soft:#9eabc7; --line:#28344f;
+  --accent:#ff7a2e; --accent-ink:#1a0d04; --accent-soft:#3a2214;
+  --good:#3ccf86; --good-soft:#133524; --bad:#ff6b5e; --bad-soft:#3a1714; --gold:#ffc53d; --gold-soft:#3a2d0c;
+  --wood:#7a5a33; --board:#060a14; --board-line:#1e2840; --led:#ffb21f; --led-soft:#7a5d22; --board-ink:#c9d3e8;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.4;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:600px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 120px;display:flex;flex-direction:column;gap:14px}
+h1,h2,h3{font-family:var(--f-display);font-weight:800;line-height:1.1;margin:0;text-wrap:balance;letter-spacing:.01em}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.top h1{font-size:30px;line-height:1.05}
+.top p{margin:2px 0 0;color:var(--ink-soft);font-weight:700}
+.sync{font-size:12px;color:var(--ink-soft);font-weight:700;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.sync i{width:8px;height:8px;border-radius:50%;background:var(--good);display:inline-block}
+.sync.off i{background:var(--bad)}
+.sync.wait i{background:var(--gold)}
+
+/* Scoreboard */
+.board{background:var(--board);color:var(--board-ink);border-radius:20px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden}
+.board-row{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end}
+.lbl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:#8d9abb}
+.led{font-family:var(--f-led);color:var(--led);text-shadow:0 0 14px rgba(255,178,31,.35);font-variant-numeric:tabular-nums;line-height:1}
+.score{display:flex;align-items:baseline;gap:6px}
+.score .led{font-size:64px}
+.score .of{font-family:var(--f-led);font-size:24px;color:var(--led-soft)}
+.screen{text-align:right}
+.screen .led{font-size:34px}
+.screen small{display:block;font-size:12px;color:#8d9abb;font-weight:700;margin-top:4px}
+.segs{display:flex;gap:3px;height:16px}
+.seg{flex:1 1 0;border-radius:4px;background:var(--board-line);transition:background .35s}
+.seg.on{background:var(--led)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:13px;font-weight:800;border-radius:999px;padding:4px 10px;background:var(--board-line);color:var(--board-ink);font-variant-numeric:tabular-nums}
+.chip.plus{background:#1d3b2c;color:#7ff0b4}
+.chip.minus{background:#45201d;color:#ffaaa2}
+.allwin{font-family:var(--f-display);font-size:20px;color:var(--led);text-align:center}
+
+/* Week */
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.wd{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;font-weight:800;color:var(--ink-soft)}
+.wd b{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--surface-2);font-size:16px;color:var(--ink-soft);border:2px solid transparent}
+.wd.star b{background:var(--gold-soft);color:var(--gold)}
+.wd.miss b{background:var(--bad-soft);color:var(--bad)}
+.wd.today b{border-color:var(--accent)}
+.wd.today{color:var(--ink)}
+
+/* Info cards */
+.info{display:grid;gap:10px}
+.card{background:var(--surface);border-radius:var(--r);padding:12px 14px;box-shadow:var(--shadow);display:flex;gap:12px;align-items:flex-start}
+.card .ic{font-size:26px;line-height:1;flex:none;width:34px;text-align:center}
+.card .tx{min-width:0;flex:1}
+.card h3{font-size:18px}
+.card p{margin:2px 0 0;color:var(--ink-soft);font-weight:700;font-size:14px}
+.card.warn{background:var(--bad-soft)}
+.card.warn h3{color:var(--bad)}
+.card.gold{background:var(--gold-soft)}
+.lessons{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;padding:0;list-style:none;counter-reset:l}
+.lessons li{counter-increment:l;font-size:13px;font-weight:800;background:var(--surface-2);border-radius:8px;padding:3px 8px}
+.lessons li::before{content:counter(l) ". ";color:var(--ink-soft)}
+.note{font-size:12px;color:var(--ink-soft);font-weight:700}
+
+/* Focus card */
+.focus{background:var(--surface);border:3px solid var(--accent);border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow)}
+.focus .lbl{color:var(--accent)}
+.focus-title{display:flex;gap:12px;align-items:center}
+.focus-title .ic{font-size:44px;line-height:1}
+.focus-title h2{font-size:26px;line-height:1.1}
+.focus-title .pts{margin-left:auto}
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+.big{flex:1 1 180px;min-height:60px;border:0;border-radius:16px;background:var(--accent);color:var(--accent-ink);font-family:var(--f-display);font-size:22px;padding:10px 16px;box-shadow:0 4px 0 rgba(0,0,0,.18)}
+.big:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.big:disabled{opacity:.45;cursor:not-allowed}
+.ghost{flex:0 1 auto;min-height:60px;border:2px solid var(--line);background:var(--surface);border-radius:16px;font-weight:800;padding:8px 14px}
+.timer{display:flex;align-items:center;gap:12px;background:var(--surface-2);border-radius:14px;padding:10px 12px}
+.timer .led{color:var(--accent);text-shadow:none;font-size:34px}
+.timer .ghost{min-height:44px;margin-left:auto}
+.pts{font-family:var(--f-display);font-size:18px;background:var(--accent-soft);color:var(--accent);border-radius:12px;padding:4px 10px;white-space:nowrap}
+
+/* Task list */
+.part{display:flex;flex-direction:column;gap:8px}
+.part h2{font-size:20px;color:var(--ink-soft);display:flex;align-items:center;gap:8px}
+.part h2 span{font-family:var(--f-body);font-size:13px;font-weight:800}
+.task{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--surface);border:0;border-radius:var(--r);padding:10px 12px;min-height:64px;box-shadow:var(--shadow)}
+.task .ic{font-size:28px;width:36px;text-align:center;flex:none}
+.task .t{flex:1;min-width:0;font-weight:800;font-size:17px;line-height:1.2}
+.task .t small{display:block;font-weight:700;font-size:13px;color:var(--ink-soft);margin-top:2px}
+.task .ck{width:34px;height:34px;border-radius:50%;border:3px solid var(--line);flex:none;display:grid;place-items:center;font-weight:900;color:transparent}
+.task.done{background:var(--good-soft);box-shadow:none}
+.task.done .t{color:var(--good)}
+.task.done .ck{background:var(--good);border-color:var(--good);color:#fff}
+.task.done .pts{background:transparent;color:var(--good)}
+.task.next{outline:3px solid var(--accent);outline-offset:-3px}
+
+/* Sheet */
+.veil{position:fixed;inset:0;background:rgba(6,10,20,.55);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--bg);width:100%;max-width:600px;max-height:92vh;overflow:auto;border-radius:24px 24px 0 0;padding:18px max(16px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px}
+.sheet-head{display:flex;align-items:center;gap:12px}
+.sheet-head h2{font-size:24px;flex:1}
+.x{width:44px;height:44px;border-radius:50%;border:0;background:var(--surface-2);font-size:22px;font-weight:900}
+.step{font-family:var(--f-display);font-size:16px;color:var(--ink-soft)}
+.row{display:flex;align-items:center;gap:12px;background:var(--surface);border-radius:14px;padding:10px 12px;min-height:58px;border:0;width:100%;text-align:left;box-shadow:var(--shadow)}
+.row .ck{width:30px;height:30px;border-radius:8px;border:3px solid var(--line);flex:none;display:grid;place-items:center;color:transparent;font-weight:900}
+.row.on{background:var(--good-soft);box-shadow:none}
+.row.on .ck{background:var(--good);border-color:var(--good);color:#fff}
+.row .t{flex:1;min-width:0;font-weight:800}
+.rowbtn{display:flex;align-items:center;gap:12px;flex:1;min-width:0;border:0;background:transparent;padding:0;text-align:left;font:inherit;color:inherit;min-height:40px}
+.row a{font-weight:800;color:var(--accent);text-decoration:none;font-size:14px;padding:6px 8px;border-radius:8px;background:var(--accent-soft);white-space:nowrap}
+.row .del{border:0;background:transparent;font-size:20px;color:var(--ink-soft);width:36px;height:36px}
+.add{display:flex;gap:8px}
+.add input{flex:1;min-width:0}
+input[type=text],input[type=number],input[type=time],input[type=date],select,textarea{font:inherit;font-weight:700;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:10px 12px;min-height:48px;width:100%}
+textarea{min-height:96px;resize:vertical}
+.small-btn{border:0;background:var(--ink);color:var(--bg);font-weight:800;border-radius:12px;padding:0 16px;min-height:48px;white-space:nowrap}
+.qchips{display:flex;flex-wrap:wrap;gap:6px}
+.qchip{border:2px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-weight:800;font-size:14px}
+.hint{background:var(--gold-soft);border-radius:12px;padding:10px 12px;font-weight:700;font-size:14px}
+
+/* Toast */
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:60;background:var(--ink);color:var(--bg);border-radius:16px;padding:12px 14px 12px 18px;display:flex;align-items:center;gap:12px;font-weight:800;box-shadow:var(--shadow);max-width:calc(100% - 32px);width:max-content}
+.toast button{border:0;background:var(--bg);color:var(--ink);border-radius:10px;padding:8px 12px;font-weight:900}
+.fly{position:fixed;z-index:70;font-family:var(--f-led);color:var(--led);font-size:34px;pointer-events:none;text-shadow:0 2px 8px rgba(0,0,0,.3);animation:fly 1.1s ease-out forwards}
+@keyframes fly{from{opacity:1;transform:translate(-50%,0) scale(1)}to{opacity:0;transform:translate(-50%,-90px) scale(1.4)}}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:65}
+
+/* Parent */
+.tabs{display:flex;gap:6px;background:var(--surface-2);border-radius:14px;padding:4px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.tabs button{flex:1;border:0;background:transparent;border-radius:10px;padding:10px 6px;font-weight:800;font-size:14px;color:var(--ink-soft)}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.panel{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:14px;display:flex;flex-direction:column;gap:12px}
+.panel h3{font-size:19px}
+.panel p{margin:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:800;color:var(--ink-soft)}
+.trow{display:flex;flex-direction:column;gap:8px;padding:14px 0;border-top:1px solid var(--line)}
+.trow:first-of-type{border-top:0}
+.tline{display:grid;grid-template-columns:56px 1fr;gap:8px}
+.tline .ico{text-align:center;padding:8px 4px;font-size:22px}
+.tgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.days{display:flex;flex-wrap:wrap;gap:4px}
+.days button{border:2px solid var(--line);background:var(--surface);border-radius:8px;min-width:38px;flex:1;min-height:36px;font-weight:800;font-size:13px}
+.days button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.danger{border:0;background:var(--bad-soft);color:var(--bad);font-weight:800;border-radius:10px;padding:8px 12px}
+.sums{display:flex;flex-wrap:wrap;gap:6px}
+.sums span{font-weight:800;font-size:13px;border-radius:8px;padding:4px 8px;background:var(--good-soft);color:var(--good)}
+.sums span.bad{background:var(--bad-soft);color:var(--bad)}
+.hist{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:14px}
+.hist th,.hist td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line)}
+.hist th{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+.hist td.n{text-align:right;font-weight:800}
+.tablebox{overflow-x:auto}
+.ok{color:var(--good);font-weight:800}
+.no{color:var(--bad);font-weight:800}
+.linkbox{display:flex;gap:8px;align-items:center}
+.linkbox input{flex:1;min-width:0;font-size:13px}
+.savebar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface);border-top:1px solid var(--line);padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;gap:10px;justify-content:center}
+.savebar .big{max-width:420px}
+.ptask{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.ptask:first-of-type{border-top:0}
+.ptask .t{flex:1;min-width:0;font-weight:800}
+.ptask .t small{display:block;color:var(--ink-soft);font-weight:700}
+.toggle{border:2px solid var(--line);background:var(--surface);border-radius:10px;padding:6px 10px;font-weight:800;font-size:13px;min-width:92px}
+.toggle.on{background:var(--good);border-color:var(--good);color:#fff}
+.center{text-align:center;padding:40px 16px;display:flex;flex-direction:column;gap:12px;align-items:center}
+.big,.pts,.step,.allwin{font-weight:800}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app" class="wrap"><div class="center"><h2>Kraunama…</h2></div></div>
+<div id="sheet" class="veil" hidden></div>
+<div id="toast" class="toast" hidden role="status" aria-live="polite"></div>
+<canvas id="confetti" hidden></canvas>
+<script>
+(function(){
+'use strict';
+const SB_URL='https://ozpysqtpvtwqkhfoqmzg.supabase.co';
+const SB_KEY='sb_publishable_nFOPH_IJkCf6O_ZyWqXX5w_i_YJl5kb';
+
+const DAY_SHORT=['Sk','Pr','An','Tr','Kt','Pn','Št'];
+const DAY_LONG=['Sekmadienis','Pirmadienis','Antradienis','Trečiadienis','Ketvirtadienis','Penktadienis','Šeštadienis'];
+const MONTHS=['sausio','vasario','kovo','balandžio','gegužės','birželio','liepos','rugpjūčio','rugsėjo','spalio','lapkričio','gruodžio'];
+const PARTS=[{id:'rytas',label:'Rytas'},{id:'diena',label:'Diena'},{id:'vakaras',label:'Vakaras'}];
+const TYPES={simple:'Paprasta',check:'ND tikrinimas',hw:'ND darymas',bag:'Kuprinės krovimas',train:'Krepšinio krepšys'};
+const SYSTEMS=[{id:'tamo',label:'TAMO',url:'https://dienynas.tamo.lt'},{id:'eduka',label:'Eduka',url:'https://klase.eduka.lt'},{id:'gc',label:'Google Classroom',url:'https://classroom.google.com'}];
+const WEEK_ORDER=[1,2,3,4,5,6,0];
+
+/* ---------- dates ---------- */
+const pad=n=>String(n).padStart(2,'0');
+const keyOf=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const fromKey=k=>{const a=k.split('-').map(Number);return new Date(a[0],a[1]-1,a[2])};
+const today=()=>{const n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate())};
+const addDays=(d,n)=>new Date(d.getFullYear(),d.getMonth(),d.getDate()+n);
+const fmtDate=d=>DAY_LONG[d.getDay()]+', '+MONTHS[d.getMonth()]+' '+d.getDate()+' d.';
+const fmtShort=d=>DAY_SHORT[d.getDay()]+' '+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function plural(n,one,few,many){const a=Math.abs(n)%10,b=Math.abs(n)%100;if(a===1&&b!==11)return one;if(a>=2&&a<=9&&(b<10||b>=20))return few;return many}
+const taskai=n=>n+' '+plural(n,'taškas','taškai','taškų');
+
+/* ---------- defaults ---------- */
+function defaultConfig(){return{
+  v:1, childName:'', childCall:'',
+  dailyMax:30, satBonusPerDay:5, sunHwBonus:3, penaltyStep:5, penaltyMax:30,
+  startDate:keyOf(today()),
+  training:{'1':'15:30','3':'15:30','4':'15:30','6':'10:30'},
+  ttExample:true,
+  timetable:{
+    '1':['Lietuvių k.','Matematika','Pasaulio pažinimas','Kūno kultūra'],
+    '2':['Lietuvių k.','Matematika','Anglų k.','Dailė ir technologijos','Muzika'],
+    '3':['Lietuvių k.','Matematika','Pasaulio pažinimas','Kūno kultūra','Etika'],
+    '4':['Lietuvių k.','Matematika','Anglų k.','Šokis'],
+    '5':['Lietuvių k.','Matematika','Kūno kultūra','Dailė ir technologijos']
+  },
+  bagExtras:['Penalas','Gertuvė su vandeniu','Padaryti namų darbai'],
+  tasks:[
+    {id:'t1',icon:'👕',title:'Apsirengti ir papusryčiauti',pts:3,part:'rytas',days:[1,2,3,4,5],type:'simple',timer:0},
+    {id:'t16',icon:'🛏️',title:'Pasikloti lovą',pts:3,part:'rytas',days:[0,5,6],type:'simple',timer:0},
+    {id:'t2',icon:'🪥',title:'Išsivalyti dantis ryte',pts:2,part:'rytas',days:[0,1,2,3,4,5,6],type:'simple',timer:0},
+    {id:'t3',icon:'🎒',title:'Iškrauti kuprinę ir priešpiečių dėžutę',pts:2,part:'diena',days:[1,2,3,4,5],type:'simple',timer:0},
+    {id:'t4',icon:'🏀',title:'Susiruošti krepšinio krepšį',pts:3,part:'diena',days:[],type:'train',timer:0},
+    {id:'t5',icon:'📖',title:'Paskaityti knygą 15 min',pts:3,part:'diena',days:[2,5],type:'simple',timer:15},
+    {id:'t12',icon:'🧸',title:'Surinkti daiktus nuo grindų ir sudėti į vietas',pts:6,part:'diena',days:[5,6],type:'simple',timer:10},
+    {id:'t17',icon:'🧽',title:'Nušluostyti dulkes savo kambaryje',pts:4,part:'diena',days:[6],type:'simple',timer:10},
+    {id:'t18',icon:'📚',title:'Sutvarkyti knygų lentyną ir stalčių',pts:3,part:'diena',days:[6],type:'simple',timer:0},
+    {id:'t6',icon:'🔎',title:'Patikrinti namų darbus',pts:4,part:'vakaras',days:[0,1,2,3,4],type:'check',timer:0},
+    {id:'t7',icon:'✏️',title:'Padaryti namų darbus',pts:8,part:'vakaras',days:[0,1,2,3,4],type:'hw',timer:20},
+    {id:'t8',icon:'🎒',title:'Susikrauti kuprinę rytojui',pts:4,part:'vakaras',days:[0,1,2,3,4],type:'bag',timer:0},
+    {id:'t9',icon:'🗂️',title:'Susitvarkyti rašomąjį stalą',pts:2,part:'vakaras',days:[1,2,3,4,5],type:'simple',timer:0},
+    {id:'t13',icon:'🧺',title:'Nešvarius drabužius į skalbinių krepšį',pts:3,part:'vakaras',days:[0,5,6],type:'simple',timer:0},
+    {id:'t14',icon:'🍽️',title:'Padėti padengti stalą vakarienei',pts:4,part:'vakaras',days:[0,5,6],type:'simple',timer:0},
+    {id:'t10',icon:'🌙',title:'Išsivalyti dantis vakare',pts:2,part:'vakaras',days:[0,1,2,3,4,5,6],type:'simple',timer:0}
+  ]
+}}
+
+/* ---------- state ---------- */
+const params=new URLSearchParams(location.search);
+const DEMO=params.get('demo');
+let KEY=params.get('k')||params.get('p')||'';
+if(!KEY&&!DEMO){try{KEY=localStorage.getItem('tl-last-key')||''}catch(e){}}
+if(KEY){try{localStorage.setItem('tl-last-key',KEY)}catch(e){}}
+const CACHE='tl-cache-'+(DEMO?'demo':KEY);
+let ROLE=DEMO==='parent'?'parent':(DEMO?'child':null);
+let C=null;           // config
+let D={};             // days
+let TG={token:false,chats:0};
+let CHILD_KEY='';
+let pending={};       // day keys waiting to sync
+let syncState='wait';
+let tab='today';
+let draft=null;       // parent settings working copy
+let dirty=false;
+let timer=null;       // {id,end,min}
+let sheetFor=null;
+let undoInfo=null;
+
+function cacheLoad(){try{const c=JSON.parse(localStorage.getItem(CACHE)||'null');if(c){C=c.C;D=c.D||{};pending=c.pending||{};ROLE=ROLE||c.ROLE;TG=c.TG||TG;CHILD_KEY=c.CHILD_KEY||''}}catch(e){}}
+function cacheSave(){try{localStorage.setItem(CACHE,JSON.stringify({C,D,pending,ROLE,TG,CHILD_KEY}))}catch(e){}}
+
+async function rpc(fn,args){
+  if(DEMO){
+    if(fn==='tl_load')return{role:ROLE,config:C||{},days:D,tg:{token:false,chats:0}};
+    return null;
+  }
+  const r=await fetch(SB_URL+'/rest/v1/rpc/'+fn,{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json'},body:JSON.stringify(args)});
+  if(!r.ok){let m='';try{m=(await r.json()).message}catch(e){}const err=new Error(m||('HTTP '+r.status));err.status=r.status;throw err}
+  const t=await r.text();return t?JSON.parse(t):null;
+}
+
+/* ---------- rules ---------- */
+function blank(){return{done:{},checks:{},hw:[],bag:{}}}
+function rec(k,create){let r=D[k];if(!r){r=blank();if(create)D[k]=r}r.done=r.done||{};r.checks=r.checks||{};r.hw=r.hw||[];r.bag=r.bag||{};return r}
+function trainingAt(dow){return (C.training&&C.training[String(dow)])||''}
+function partOf(t,dow){if(t.type==='train'){const tm=trainingAt(dow)||'12:00';return tm<'12:00'?'rytas':'diena'}return t.part}
+const partIdx=p=>Math.max(0,PARTS.findIndex(x=>x.id===p));
+function tasksFor(d){
+  const dow=d.getDay();
+  return C.tasks.map((t,i)=>({t,i})).filter(({t})=>t.type==='train'?!!trainingAt(dow):(t.days||[]).includes(dow))
+    .sort((a,b)=>partIdx(partOf(a.t,dow))-partIdx(partOf(b.t,dow))||a.i-b.i).map(x=>x.t);
+}
+const isPerfect=k=>!!(D[k]&&D[k].allDone===true);
+function penaltyFor(d){
+  let n=0;
+  for(let i=1;i<=40;i++){const k=keyOf(addDays(d,-i));if(k<(C.startDate||'9999'))break;if(isPerfect(k))break;n++}
+  const step=+C.penaltyStep||0,max=+C.penaltyMax||0;
+  return{n,amount:Math.min(step*n,max),next:Math.min(step*(n+1),max)};
+}
+function satWindowCount(d){
+  // Saturday S counts perfect days in [S-7, S-1]
+  const dow=d.getDay();
+  if(dow===6){let c=0;for(let i=1;i<=7;i++){const k=keyOf(addDays(d,-i));if(k>=C.startDate&&isPerfect(k))c++}return{c,final:true}}
+  const sat=addDays(d,6-dow);let c=0;
+  for(let x=addDays(sat,-7);x<=d;x=addDays(x,1)){const k=keyOf(x);if(k>=C.startDate&&isPerfect(k))c++}
+  return{c,final:false};
+}
+function summarize(k){
+  const d=fromKey(k),r=rec(k),ts=tasksFor(d),dow=d.getDay();
+  let sum=0;const missing=[];
+  ts.forEach(t=>{if(r.done[t.id])sum+=(+t.pts||0);else missing.push(t.title)});
+  const max=+C.dailyMax||30,earned=Math.min(sum,max),allDone=ts.length>0&&missing.length===0;
+  let sat=0,sun=0,satDays=0;
+  if(dow===6){satDays=satWindowCount(d).c;sat=satDays*(+C.satBonusPerDay||0)}
+  if(dow===0){const hwT=ts.find(t=>t.type==='hw');if(hwT&&r.done[hwT.id]){const n=r.hw.filter(h=>h.done).length;sun=Math.max(1,n)*(+C.sunHwBonus||0)}}
+  const pen=penaltyFor(d);
+  const screen=Math.max(0,earned+sat+sun-pen.amount);
+  return{ts,sum,earned,max,allDone,missing,sat,sun,satDays,pen,screen};
+}
+function stamp(k){
+  const r=rec(k,true),s=summarize(k);
+  Object.assign(r,{earned:s.earned,max:s.max,allDone:s.allDone,missing:s.missing,screen:s.screen,bonus:s.sat+s.sun,penalty:s.pen.amount,nextPenalty:s.allDone?0:s.pen.next});
+  return s;
+}
+
+/* ---------- sync ---------- */
+async function loadServer(){
+  try{
+    const res=await rpc('tl_load',{p_key:KEY});
+    ROLE=res.role;
+    const cfg=res.config&&res.config.tasks?res.config:null;
+    if(cfg)C=cfg;else if(!C)C=defaultConfig();
+    if(!cfg&&ROLE==='parent'&&!DEMO){await rpc('tl_save_config',{p_key:KEY,p_config:C})}
+    const sd=res.days||{};
+    Object.keys(sd).forEach(k=>{if(!pending[k])D[k]=sd[k]});
+    if(res.tg)TG=res.tg;
+    if(res.childKey)CHILD_KEY=res.childKey;
+    syncState='ok';
+    await flush();
+  }catch(e){
+    if(e.message==='bad_key'){showBadKey();return false}
+    syncState='off';
+  }
+  if(!C)C=defaultConfig();
+  cacheSave();
+  return true;
+}
+let flushing=false;
+async function flush(){
+  if(flushing)return;flushing=true;
+  try{
+    for(const k of Object.keys(pending)){
+      const ev=pending[k]===true?null:pending[k];
+      await rpc('tl_save_day',{p_key:KEY,p_day:k,p_rec:D[k],p_event:ev});
+      delete pending[k];
+    }
+    syncState='ok';
+  }catch(e){syncState='off'}
+  flushing=false;cacheSave();paintSync();
+}
+function saveDay(k,event){
+  stamp(k);
+  const prev=pending[k];
+  // keep the newest message; merge if two pile up offline
+  pending[k]=event?(typeof prev==='string'&&prev?prev+'\n'+event:event):(prev||true);
+  cacheSave();flush();
+}
+function paintSync(){const el=document.getElementById('sync');if(!el)return;el.className='sync'+(syncState==='off'?' off':syncState==='wait'?' wait':'');el.lastChild.textContent=syncState==='off'?' Nėra ryšio':syncState==='wait'?' Jungiama…':(DEMO?' Demo':' Išsaugota')}
+
+/* ---------- helpers for child ---------- */
+const name=()=>C.childName||'Vaikas';
+function nextSchoolDay(d){let x=addDays(d,1);for(let i=0;i<7&&!(x.getDay()>=1&&x.getDay()<=5);i++)x=addDays(x,1);return x}
+function lessonsOf(d){return (C.timetable&&C.timetable[String(d.getDay())])||[]}
+function curPart(){const h=new Date().getHours();return h<12?0:h<17?1:2}
+function nextTask(ts,r,dow){
+  const undone=ts.filter(t=>!r.done[t.id]);if(!undone.length)return null;
+  const cp=curPart();return undone.find(t=>partIdx(partOf(t,dow))>=cp)||undone[0];
+}
+function sub(t,r,d){
+  const dow=d.getDay();
+  if(t.type==='train')return 'Treniruotė '+trainingAt(dow);
+  if(t.type==='check'){const n=SYSTEMS.filter(s=>r.checks[s.id]).length;return 'TAMO, Eduka, Google Classroom · '+n+'/3'}
+  if(t.type==='hw'){const n=r.hw.length;return n?r.hw.filter(h=>h.done).length+' iš '+n+' padaryta':'Pirma patikrink, kas užduota'}
+  if(t.type==='bag'){const nd=nextSchoolDay(d);return 'Pamokos: '+DAY_LONG[nd.getDay()].toLowerCase()}
+  if(t.timer)return 'Laikmatis '+t.timer+' min';
+  return '';
+}
+function trainingText(d){
+  const tm=trainingAt(d.getDay());if(!tm)return null;
+  const [h,m]=tm.split(':').map(Number);const st=new Date(d.getFullYear(),d.getMonth(),d.getDate(),h,m);
+  const now=new Date(),diff=Math.round((st-now)/60000);
+  if(keyOf(d)!==keyOf(today()))return 'Treniruotė '+tm;
+  if(diff>0){const hh=Math.floor(diff/60),mm=diff%60;return 'Iki treniruotės liko '+(hh?hh+' val. ':'')+mm+' min'}
+  if(diff>-90)return 'Treniruotė vyksta dabar';
+  return 'Treniruotė jau baigėsi. Šaunuolis!';
+}
+
+/* ---------- render: child ---------- */
+function boardHTML(s,showSegs){
+  const segs=s.ts.map(t=>'<span class="seg'+(rec(keyOf(today())).done[t.id]?' on':'')+'" style="flex-grow:'+(+t.pts||1)+'"></span>').join('');
+  const chips=[];
+  if(s.sat)chips.push('<span class="chip plus">Savaitės premija +'+s.sat+' min</span>');
+  if(s.sun)chips.push('<span class="chip plus">Už namų darbus +'+s.sun+' min</span>');
+  if(s.pen.amount)chips.push('<span class="chip minus">Bauda −'+s.pen.amount+' min</span>');
+  return '<section class="board" aria-label="Taškų lenta">'+
+    '<div class="board-row"><div><div class="lbl">Taškai šiandien</div><div class="score"><span class="led" id="score">'+s.earned+'</span><span class="of">/'+s.max+'</span></div></div>'+
+    '<div class="screen"><div class="lbl">Ekrano laikas</div><div class="led">'+s.screen+'<span style="font-size:18px"> min</span></div></div></div>'+
+    (showSegs&&s.ts.length?'<div class="segs" aria-hidden="true">'+segs+'</div>':'')+
+    (s.allDone?'<div class="allwin">Visos užduotys atliktos! 🏆</div>':'')+
+    (chips.length?'<div class="chips">'+chips.join('')+'</div>':'')+
+  '</section>';
+}
+function weekHTML(d){
+  const mon=addDays(d,-((d.getDay()+6)%7));const tk=keyOf(today());
+  return '<section class="week" aria-label="Savaitė">'+WEEK_ORDER.map((_,i)=>{
+    const x=addDays(mon,i),k=keyOf(x);let cls='wd',sym='·';
+    if(isPerfect(k)){cls+=' star';sym='★'}
+    else if(k<tk&&k>=C.startDate){cls+=' miss';sym='✕'}
+    if(k===tk)cls+=' today';
+    return '<div class="'+cls+'"><b>'+sym+'</b>'+DAY_SHORT[x.getDay()]+'</div>';
+  }).join('')+'</section>';
+}
+function renderChild(){
+  const d=today(),k=keyOf(d),r=rec(k),s=summarize(k),dow=d.getDay();
+  const call=C.childCall||C.childName;
+  let h='<header class="top"><div><h1>Labas'+(call?', '+esc(call):'')+'!</h1><p>'+fmtDate(d)+'</p></div><div class="sync" id="sync"><i></i> </div></header>';
+  h+=boardHTML(s,true);
+  h+=weekHTML(d);
+  // info cards
+  const cards=[];
+  if(s.pen.amount)cards.push('<div class="card warn"><div class="ic">⚠️</div><div class="tx"><h3>Bauda −'+s.pen.amount+' min</h3><p>'+(s.pen.n===1?'Vakar ne visos užduotys buvo atliktos.':'Jau '+s.pen.n+' '+plural(s.pen.n,'diena','dienos','dienų')+' iš eilės ne visos užduotys atliktos.')+' Atlik šiandien viską, ir rytoj baudos nebus.</p></div></div>');
+  const tt=trainingText(d);
+  if(tt)cards.push('<div class="card"><div class="ic">🏀</div><div class="tx"><h3>Krepšinis '+esc(trainingAt(dow))+'</h3><p>'+esc(tt)+'</p></div></div>');
+  if(dow>=1&&dow<=5){const ls=lessonsOf(d);cards.push('<div class="card"><div class="ic">🏫</div><div class="tx"><h3>Šiandienos pamokos</h3>'+(ls.length?'<ol class="lessons">'+ls.map(l=>'<li>'+esc(l)+'</li>').join('')+'</ol>':'<p>Tvarkaraštis dar neįvestas.</p>')+(C.ttExample?'<p class="note">Pavyzdinis tvarkaraštis. Tėvai jį pakeis.</p>':'')+'</div></div>')}
+  if(dow===6)cards.push('<div class="card gold"><div class="ic">🎁</div><div class="tx"><h3>Šeštadienio premija +'+s.sat+' min</h3><p>'+s.satDays+' '+plural(s.satDays,'pilna diena','pilnos dienos','pilnų dienų')+' per savaitę × '+C.satBonusPerDay+' min.</p></div></div>');
+  else{const w=satWindowCount(d);cards.push('<div class="card gold"><div class="ic">🎁</div><div class="tx"><h3>Šeštadienį: +'+(w.c*C.satBonusPerDay)+' min</h3><p>Šią savaitę '+w.c+' '+plural(w.c,'pilna diena','pilnos dienos','pilnų dienų')+'. Kiekviena pilna diena prideda '+C.satBonusPerDay+' min.'+(dow===0?' Šiandien už kiekvieną padarytą namų darbą dar +'+C.sunHwBonus+' min.':'')+'</p></div></div>')}
+  h+='<section class="info">'+cards.join('')+'</section>';
+  // focus
+  const nt=nextTask(s.ts,r,dow);
+  if(nt){
+    const special=['check','hw','bag'].includes(nt.type);
+    h+='<section class="focus" aria-label="Dabar darom"><div class="lbl">Dabar darom</div>'+
+      '<div class="focus-title"><span class="ic">'+esc(nt.icon)+'</span><h2>'+esc(nt.title)+'</h2><span class="pts">+'+nt.pts+'</span></div>';
+    if(timer&&timer.id===nt.id)h+='<div class="timer"><span class="led" id="tleft">'+fmtLeft()+'</span><span class="note">Dirbk, kol baigsis laikas</span><button class="ghost" data-act="timer-stop">Sustabdyti</button></div>';
+    h+='<div class="btns"><button class="big" data-act="'+(special?'open':'done')+'" data-id="'+nt.id+'">'+(special?'Pradėti':'Padariau!')+'</button>'+
+      (nt.timer&&!(timer&&timer.id===nt.id)?'<button class="ghost" data-act="timer" data-id="'+nt.id+'">⏱ '+nt.timer+' min</button>':'')+'</div></section>';
+  }
+  // list
+  PARTS.forEach((p,pi)=>{
+    const items=s.ts.filter(t=>partOf(t,dow)===p.id);if(!items.length)return;
+    const dn=items.filter(t=>r.done[t.id]).length;
+    h+='<section class="part"><h2>'+p.label+' <span>'+dn+'/'+items.length+'</span></h2>'+items.map(t=>{
+      const done=!!r.done[t.id];const sb=sub(t,r,d);
+      return '<button class="task'+(done?' done':'')+(nt&&nt.id===t.id?' next':'')+'" data-act="task" data-id="'+t.id+'"><span class="ic">'+esc(t.icon)+'</span><span class="t">'+esc(t.title)+(sb?'<small>'+esc(sb)+'</small>':'')+'</span><span class="pts">+'+t.pts+'</span><span class="ck">✓</span></button>';
+    }).join('')+'</section>';
+  });
+  document.getElementById('app').innerHTML=h;
+  paintSync();
+}
+
+/* ---------- sheets ---------- */
+function openSheet(id){sheetFor=id;renderSheet()}
+function closeSheet(){sheetFor=null;const el=document.getElementById('sheet');el.hidden=true;el.innerHTML=''}
+function renderSheet(){
+  const el=document.getElementById('sheet');if(!sheetFor){closeSheet();return}
+  const d=today(),k=keyOf(d),r=rec(k),t=C.tasks.find(x=>x.id===sheetFor);if(!t){closeSheet();return}
+  const done=!!r.done[t.id];
+  let b='<div class="sheet" role="dialog" aria-modal="true" aria-label="'+esc(t.title)+'"><div class="sheet-head"><span style="font-size:34px">'+esc(t.icon)+'</span><h2>'+esc(t.title)+'</h2><button class="x" data-act="sheet-close" aria-label="Uždaryti">×</button></div>';
+  const nd=nextSchoolDay(d);
+  if(t.type==='check'){
+    b+='<div class="step">1. Atsidaryk kiekvieną sistemą ir pažymėk</div>';
+    b+=SYSTEMS.map(sy=>'<div class="row'+(r.checks[sy.id]?' on':'')+'"><button class="rowbtn" data-act="sys" data-sys="'+sy.id+'"><span class="ck">✓</span><span class="t">'+sy.label+'</span></button><a href="'+sy.url+'" target="_blank" rel="noopener">Atidaryti ↗</a></div>').join('');
+    b+='<div class="step">2. Ką uždavė? Įrašyk kiekvieną darbą</div>';
+    b+=hwAddHTML(nd);
+    b+=hwListHTML(r,false);
+    const all=SYSTEMS.every(sy=>r.checks[sy.id]);
+    b+=done?'<div class="hint">Jau patikrinta ✓</div>':'<button class="big" data-act="check-done" '+(all?'':'disabled')+'>Patikrinau! +'+t.pts+'</button>'+(all?'':'<p class="note">Pažymėk visas tris sistemas.</p>');
+  }else if(t.type==='hw'){
+    const ct=C.tasks.find(x=>x.type==='check');
+    if(ct&&tasksFor(d).includes(ct)&&!r.done[ct.id])b+='<div class="hint">Pirma patikrink TAMO, Eduka ir Google Classroom, kas užduota.</div>';
+    b+=hwListHTML(r,true);
+    b+='<div class="step">Dar ką nors uždavė?</div>'+hwAddHTML(nd);
+    if(d.getDay()===0)b+='<div class="hint">Sekmadienį už kiekvieną padarytą namų darbą gausi +'+C.sunHwBonus+' min!</div>';
+    const n=r.hw.length,allDone=n>0&&r.hw.every(h=>h.done);
+    if(done)b+='<div class="hint">Namų darbai padaryti ✓</div>';
+    else{
+      b+='<button class="big" data-act="hw-done" '+(allDone?'':'disabled')+'>Visi namų darbai padaryti! +'+t.pts+'</button>';
+      if(!n)b+='<button class="ghost" data-act="hw-none">Šiandien nieko neužduota</button>';
+    }
+  }else if(t.type==='bag'){
+    const items=bagItems(d);
+    b+='<div class="step">Rytoj '+DAY_LONG[nd.getDay()].toLowerCase()+'. Sudėk į kuprinę:</div>';
+    b+=items.map(it=>'<button class="row'+(r.bag[it]?' on':'')+'" data-act="bag" data-item="'+esc(it)+'"><span class="ck">✓</span><span class="t">'+esc(it)+'</span></button>').join('');
+    const all=items.every(it=>r.bag[it]);
+    b+=done?'<div class="hint">Kuprinė paruošta ✓</div>':'<button class="big" data-act="bag-done" '+(all?'':'disabled')+'>Kuprinė paruošta! +'+t.pts+'</button>';
+  }
+  b+='</div>';
+  el.innerHTML=b;el.hidden=false;
+}
+function bagItems(d){const nd=nextSchoolDay(d);const ls=[...new Set(lessonsOf(nd))].map(l=>l+' (knygos, sąsiuviniai)');return ls.concat(C.bagExtras||[])}
+function hwAddHTML(nd){
+  const ls=[...new Set(lessonsOf(nd))];
+  return '<div class="qchips">'+ls.map(l=>'<button class="qchip" data-act="chip" data-text="'+esc(l)+'">'+esc(l)+'</button>').join('')+'</div>'+
+    '<div class="add"><input type="text" id="hw-input" placeholder="Pvz. Matematika: 23 psl. 4 užd." maxlength="120" autocomplete="off"><button class="small-btn" data-act="hw-add">Pridėti</button></div>';
+}
+function hwListHTML(r,tickable){
+  if(!r.hw.length)return '<p class="note">Kol kas nieko neįrašyta.</p>';
+  return r.hw.map((h,i)=>'<div class="row'+(h.done&&tickable?' on':'')+'">'+(tickable?'<button class="rowbtn" data-act="hw-tick" data-i="'+i+'"><span class="ck">✓</span><span class="t">'+esc(h.text)+'</span></button>':'<span class="t">📌 '+esc(h.text)+'</span>')+'<button class="del" data-act="hw-del" data-i="'+i+'" aria-label="Ištrinti">×</button></div>').join('');
+}
+
+/* ---------- actions ---------- */
+function markDone(id,extra){
+  const k=keyOf(today()),r=rec(k,true),t=C.tasks.find(x=>x.id===id);if(!t||r.done[id])return;
+  r.done[id]=Date.now();
+  const before=summarize(k);
+  const s=stamp(k);
+  let ev=null;
+  if(ROLE==='child'){
+    ev='✅ '+name()+': '+t.title+' (+'+t.pts+')'+(extra?'\n'+extra:'')+'\nŠiandien '+s.earned+'/'+s.max+' taškų.';
+    if(s.allDone)ev+='\n🏆 Visos dienos užduotys atliktos! Ekrano laikas šiandien: '+s.screen+' min.';
+  }
+  saveDay(k,ev);
+  undoInfo={id,k};
+  fly('+'+t.pts);ding(s.allDone);
+  if(s.allDone&&!before.allDone)confetti();
+  toast(s.allDone?'Visos užduotys atliktos! 🏆':'Šaunuolis! +'+t.pts+' '+plural(t.pts,'taškas','taškai','taškų'),true);
+  if(timer&&timer.id===id)timer=null;
+  render();
+}
+function undo(){
+  if(!undoInfo)return;const {id,k}=undoInfo;undoInfo=null;const r=rec(k,true),t=C.tasks.find(x=>x.id===id);
+  delete r.done[id];
+  saveDay(k,ROLE==='child'&&t?'↩️ '+name()+' atšaukė: '+t.title:null);
+  hideToast();render();
+}
+function fly(txt){const s=document.getElementById('score');if(!s)return;const b=s.getBoundingClientRect();const f=document.createElement('div');f.className='fly';f.textContent=txt;f.style.left=(b.left+b.width/2)+'px';f.style.top=(b.top)+'px';document.body.appendChild(f);setTimeout(()=>f.remove(),1200)}
+let tt=null;
+function toast(msg,withUndo){const el=document.getElementById('toast');el.innerHTML='<span>'+esc(msg)+'</span>'+(withUndo?'<button data-act="undo">Atšaukti</button>':'');el.hidden=false;clearTimeout(tt);tt=setTimeout(hideToast,withUndo?6000:3000)}
+function hideToast(){document.getElementById('toast').hidden=true}
+let actx=null;
+function ding(big){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();const notes=big?[523,659,784,1047]:[660,880];notes.forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type='triangle';o.frequency.value=f;g.gain.setValueAtTime(0.0001,actx.currentTime+i*.09);g.gain.exponentialRampToValueAtTime(.18,actx.currentTime+i*.09+.02);g.gain.exponentialRampToValueAtTime(.0001,actx.currentTime+i*.09+.3);o.connect(g);g.connect(actx.destination);o.start(actx.currentTime+i*.09);o.stop(actx.currentTime+i*.09+.32)})}catch(e){}}
+function confetti(){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const c=document.getElementById('confetti');c.hidden=false;c.width=innerWidth;c.height=innerHeight;const x=c.getContext('2d');
+  const cols=['#e8681f','#ffb21f','#1d9459','#14213d','#4f7cff'];
+  const ps=Array.from({length:120},()=>({x:innerWidth/2,y:innerHeight/3,vx:(Math.random()-.5)*12,vy:Math.random()*-12-4,s:6+Math.random()*6,c:cols[Math.floor(Math.random()*cols.length)],r:Math.random()*6}));
+  let f=0;(function step(){x.clearRect(0,0,c.width,c.height);ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.4;p.r+=.2;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);x.restore()});if(++f<110)requestAnimationFrame(step);else{c.hidden=true}})();
+}
+function fmtLeft(){if(!timer)return '';const ms=Math.max(0,timer.end-Date.now()),s=Math.ceil(ms/1000);return pad(Math.floor(s/60))+':'+pad(s%60)}
+setInterval(()=>{if(!timer)return;const el=document.getElementById('tleft');if(el)el.textContent=fmtLeft();if(Date.now()>=timer.end){const t=C.tasks.find(x=>x.id===timer.id);timer=null;ding(true);toast('Laikas baigėsi! Ar padarei: '+(t?t.title:'')+'?');render()}},1000);
+
+/* ---------- render: parent ---------- */
+function renderParent(){
+  const d=today(),k=keyOf(d);
+  let h='<header class="top"><div><h1>Tėvų skydelis</h1><p>'+fmtDate(d)+'</p></div><div class="sync" id="sync"><i></i> </div></header>';
+  h+='<nav class="tabs" role="tablist">'+[['today','Šiandien'],['hist','Istorija'],['set','Nustatymai'],['tg','Pranešimai']].map(([id,l])=>'<button role="tab" aria-selected="'+(tab===id)+'" data-act="tab" data-tab="'+id+'">'+l+'</button>').join('')+'</nav>';
+  if(tab==='today')h+=parentToday(d,k);
+  if(tab==='hist')h+=parentHist(d);
+  if(tab==='set')h+=parentSettings();
+  if(tab==='tg')h+=parentTg();
+  document.getElementById('app').innerHTML=h;
+  paintSync();
+}
+function parentToday(d,k){
+  const r=rec(k),s=summarize(k),dow=d.getDay();
+  let h=boardHTML(s,true);
+  h+=weekHTML(d);
+  const pn=penaltyFor(d);
+  h+='<div class="panel"><h3>'+esc(name())+' šiandien</h3>';
+  h+='<p>Taškai '+s.earned+'/'+s.max+(s.sat?' · savaitės premija +'+s.sat:'')+(s.sun?' · ND premija +'+s.sun:'')+(pn.amount?' · bauda −'+pn.amount:'')+' = <b>'+s.screen+' min</b> ekrano laiko.</p>';
+  if(!s.allDone)h+='<p class="note">Jei šiandien liks neatliktų užduočių, rytoj bauda bus −'+pn.next+' min.</p>';
+  h+=s.ts.map(t=>{const dn=r.done[t.id];return '<div class="ptask"><span style="font-size:22px">'+esc(t.icon)+'</span><span class="t">'+esc(t.title)+'<small>+'+t.pts+(dn?' · atlikta '+new Date(dn).toLocaleTimeString('lt-LT',{hour:'2-digit',minute:'2-digit'}):'')+'</small></span><button class="toggle'+(dn?' on':'')+'" data-act="p-toggle" data-id="'+t.id+'">'+(dn?'Atlikta ✓':'Neatlikta')+'</button></div>'}).join('');
+  h+='</div>';
+  h+='<div class="panel"><h3>Namų darbai</h3>'+(r.hw.length?r.hw.map(x=>'<div class="ptask"><span class="t">'+esc(x.text)+'</span><span class="'+(x.done?'ok':'no')+'">'+(x.done?'Padaryta':'Nepadaryta')+'</span></div>').join(''):'<p class="note">Šiandien dar neįrašyta.</p>')+
+    '<p class="note">Patikrinta: '+SYSTEMS.map(sy=>sy.label+' '+(r.checks[sy.id]?'✓':'—')).join(' · ')+'</p></div>';
+  return h;
+}
+function parentHist(d){
+  let rows='';
+  for(let i=0;i<21;i++){
+    const x=addDays(d,-i),k=keyOf(x);if(k<C.startDate)break;
+    const r=D[k];
+    const s=i===0?summarize(k):null;
+    const e=s?s.earned:(r&&r.earned!=null?r.earned:0),mx=s?s.max:(r&&r.max)||C.dailyMax;
+    const bon=s?(s.sat+s.sun):(r&&r.bonus)||0,pen=s?s.pen.amount:(r&&r.penalty)||0,scr=s?s.screen:(r&&r.screen!=null?r.screen:Math.max(0,e+bon-pen));
+    const all=s?s.allDone:isPerfect(k);
+    rows+='<tr><td>'+fmtShort(x)+'</td><td class="n">'+e+'/'+mx+'</td><td class="n">'+(bon?'+'+bon:'')+'</td><td class="n">'+(pen?'−'+pen:'')+'</td><td class="n">'+scr+'</td><td>'+(all?'<span class="ok">★ Viskas</span>':(i===0?'Vyksta':'<span class="no">Ne viskas</span>'))+'</td></tr>';
+  }
+  return '<div class="panel"><h3>Paskutinės dienos</h3><div class="tablebox"><table class="hist"><thead><tr><th>Diena</th><th>Taškai</th><th>Premija</th><th>Bauda</th><th>Min</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div><p class="note">Skaičiuojama nuo '+esc(C.startDate)+'.</p></div>';
+}
+function parentSettings(){
+  if(!draft)draft=JSON.parse(JSON.stringify(C));
+  const q=draft;
+  let h='<div class="panel"><h3>Vaikas</h3><div class="grid2">'+
+    fld('Vardas (pranešimams)','childName',q.childName,'text','Jonas')+
+    fld('Kaip kreiptis (šauksmininkas)','childCall',q.childCall,'text','Jonai')+'</div></div>';
+  h+='<div class="panel"><h3>Taisyklės</h3><div class="grid2">'+
+    fld('Daugiausia taškų per dieną','dailyMax',q.dailyMax,'number')+
+    fld('Šeštadienio premija už pilną dieną, min','satBonusPerDay',q.satBonusPerDay,'number')+
+    fld('Sekmadienį už kiekvieną ND, min','sunHwBonus',q.sunHwBonus,'number')+
+    fld('Bauda: žingsnis, min','penaltyStep',q.penaltyStep,'number')+
+    fld('Bauda: daugiausia, min','penaltyMax',q.penaltyMax,'number')+
+    fld('Taisyklės galioja nuo','startDate',q.startDate,'date')+
+  '</div><p class="note">Bauda: 1 diena be visų užduočių −'+q.penaltyStep+' min kitą dieną, 2 iš eilės −'+(2*q.penaltyStep)+', … daugiausia −'+q.penaltyMax+'. Pilna diena baudą nuima.</p></div>';
+  h+='<div class="panel"><h3>Krepšinio treniruotės</h3><div class="grid2">'+WEEK_ORDER.map(dw=>'<label class="f">'+DAY_LONG[dw]+'<input type="time" id="tr-'+dw+'" data-tr="'+dw+'" value="'+esc((q.training||{})[dw]||'')+'"></label>').join('')+'</div><p class="note">Palikite tuščią, jei tą dieną treniruotės nėra.</p></div>';
+  h+='<div class="panel"><h3>Pamokų tvarkaraštis</h3><p class="note">Viena pamoka eilutėje, iš eilės.</p><div class="grid2">'+[1,2,3,4,5].map(dw=>'<label class="f">'+DAY_LONG[dw]+'<textarea id="tt-'+dw+'" data-tt="'+dw+'" rows="6">'+esc(((q.timetable||{})[dw]||[]).join('\n'))+'</textarea></label>').join('')+'</div>'+
+    '<label class="f">Kuprinėje visada (po vieną eilutėje)<textarea id="bag-extra" data-bag="1" rows="3">'+esc((q.bagExtras||[]).join('\n'))+'</textarea></label></div>';
+  // tasks
+  const sums=WEEK_ORDER.map(dw=>{const s=q.tasks.filter(t=>t.type==='train'?!!(q.training||{})[dw]:(t.days||[]).includes(dw)).reduce((a,t)=>a+(+t.pts||0),0);return '<span class="'+(s===+q.dailyMax?'':'bad')+'">'+DAY_SHORT[dw]+' '+s+'</span>'}).join('');
+  h+='<div class="panel"><h3>Užduotys</h3><p class="note">Taškų suma kiekvienai dienai (turėtų būti '+q.dailyMax+'):</p><div class="sums">'+sums+'</div>';
+  h+=q.tasks.map((t,i)=>'<div class="trow">'+
+    '<div class="tline"><input type="text" class="ico" id="ti-'+i+'-icon" data-ti="'+i+'" data-f="icon" value="'+esc(t.icon)+'" aria-label="Ženkliukas" maxlength="4"><input type="text" id="ti-'+i+'-title" data-ti="'+i+'" data-f="title" value="'+esc(t.title)+'" aria-label="Pavadinimas"></div>'+
+    '<div class="tgrid"><label class="f">Taškai<input type="number" id="ti-'+i+'-pts" data-ti="'+i+'" data-f="pts" value="'+esc(t.pts)+'" min="0" max="30"></label>'+
+    '<label class="f">Laikmatis, min<input type="number" id="ti-'+i+'-timer" data-ti="'+i+'" data-f="timer" value="'+esc(t.timer||0)+'" min="0" max="90"></label>'+
+    '<label class="f">Dienos dalis<select id="ti-'+i+'-part" data-ti="'+i+'" data-f="part">'+PARTS.map(p=>'<option value="'+p.id+'"'+(t.part===p.id?' selected':'')+'>'+p.label+'</option>').join('')+'</select></label>'+
+    '<label class="f">Rūšis<select id="ti-'+i+'-type" data-ti="'+i+'" data-f="type">'+Object.entries(TYPES).map(([v,l])=>'<option value="'+v+'"'+(t.type===v?' selected':'')+'>'+l+'</option>').join('')+'</select></label></div>'+
+    (t.type==='train'?'<p class="note">Rodoma dienomis, kai yra treniruotė.</p>':'<div class="days">'+WEEK_ORDER.map(dw=>'<button class="'+((t.days||[]).includes(dw)?'on':'')+'" data-act="tday" data-i="'+i+'" data-d="'+dw+'">'+DAY_SHORT[dw]+'</button>').join('')+'</div>')+
+    '<div><button class="danger" data-act="tdel" data-i="'+i+'">Ištrinti užduotį</button></div></div>').join('');
+  h+='<button class="ghost" data-act="tadd">+ Nauja užduotis</button></div>';
+  h+='<div class="panel"><h3>Nuorodos</h3><p>Vaiko telefonui (atidarykite jo iPhone Safari ir pridėkite prie pagrindinio ekrano):</p>'+
+    linkBox('child-link',childLink())+
+    '<p class="note">Tėvų nuoroda yra ši, kurią dabar naudojate. Neduokite jos vaikui.</p></div>';
+  h+='<div style="height:20px"></div><div class="savebar"><button class="big" data-act="save-config" '+(dirty?'':'disabled')+'>'+(dirty?'Išsaugoti nustatymus':'Viskas išsaugota')+'</button></div>';
+  return h;
+}
+function fld(label,f,v,type,ph){return '<label class="f">'+label+'<input type="'+type+'" id="cf-'+f+'" data-cf="'+f+'" value="'+esc(v==null?'':v)+'"'+(ph?' placeholder="'+esc(ph)+'"':'')+'></label>'}
+function linkBox(id,url){return '<div class="linkbox"><input type="text" id="'+id+'" readonly value="'+esc(url)+'"><button class="small-btn" data-act="copy" data-target="'+id+'">Kopijuoti</button></div>'}
+function childLink(){return location.origin+location.pathname+'?k='+(DEMO?'demo':CHILD_KEY)}
+function parentTg(){
+  let h='<div class="panel"><h3>Telegram pranešimai</h3>';
+  h+='<p>Būsena: '+(TG.token&&TG.chats?'<span class="ok">Prijungta ('+TG.chats+' '+plural(TG.chats,'gavėjas','gavėjai','gavėjų')+')</span>':'<span class="no">Neprijungta</span>')+'</p>';
+  h+='<p class="note">Gausite žinutę, kai '+esc(name())+' atliks užduotį, ir dienos suvestinę 20:30.</p></div>';
+  h+='<div class="panel"><h3>1. Sukurkite botą</h3><p>Telegram programėlėje suraskite <b>@BotFather</b>, parašykite <b>/newbot</b>, sugalvokite pavadinimą (pvz. „Taškų lenta“) ir vardą, kuris baigiasi „bot“. BotFather atsiųs raktą (token).</p>'+
+    '<label class="f">Boto raktas (token)<input type="text" id="tg-token" placeholder="123456789:AA…" autocomplete="off"></label></div>';
+  h+='<div class="panel"><h3>2. Parašykite botui</h3><p>Abu tėvai Telegram atidarykite savo naują botą ir paspauskite <b>Start</b> (arba parašykite bet ką).</p>'+
+    '<button class="ghost" data-act="tg-find">Rasti, kas parašė botui</button><div id="tg-found"></div></div>';
+  return h;
+}
+
+/* ---------- parent actions ---------- */
+let tgFound=[];
+async function tgFind(){
+  const tok=(document.getElementById('tg-token').value||'').trim();const box=document.getElementById('tg-found');
+  if(!/^\d+:[\w-]{20,}$/.test(tok)){box.innerHTML='<p class="no">Raktas atrodo neteisingas. Jis atrodo taip: 123456789:AAH…</p>';return}
+  box.innerHTML='<p class="note">Ieškoma…</p>';
+  try{
+    const r=await fetch('https://api.telegram.org/bot'+tok+'/getUpdates');const j=await r.json();
+    if(!j.ok)throw new Error(j.description||'Klaida');
+    const m=new Map();(j.result||[]).forEach(u=>{const msg=u.message||u.my_chat_member||u.edited_message;const ch=msg&&msg.chat;if(ch)m.set(String(ch.id),[ch.first_name,ch.last_name,ch.title].filter(Boolean).join(' ')||String(ch.id))});
+    tgFound=[...m.entries()];
+    if(!tgFound.length){box.innerHTML='<p class="no">Niekas dar neparašė botui. Atidarykite botą Telegram, paspauskite Start ir bandykite dar kartą.</p>';return}
+    box.innerHTML='<p>Rasti gavėjai:</p>'+tgFound.map(([id,n],i)=>'<label class="row on" style="box-shadow:none"><input type="checkbox" id="tgc-'+i+'" data-tgc="'+esc(id)+'" checked style="width:24px;height:24px"> <span class="t">'+esc(n)+'</span></label>').join('')+'<button class="big" data-act="tg-save">Prijungti ir išsiųsti bandomąją žinutę</button>';
+  }catch(e){box.innerHTML='<p class="no">Nepavyko: '+esc(e.message)+'</p>'}
+}
+async function tgSave(){
+  const tok=(document.getElementById('tg-token').value||'').trim();
+  const chats=[...document.querySelectorAll('[data-tgc]')].filter(x=>x.checked).map(x=>x.dataset.tgc);
+  const box=document.getElementById('tg-found');
+  try{await rpc('tl_set_telegram',{p_key:KEY,p_token:tok,p_chats:chats});await rpc('tl_test_telegram',{p_key:KEY});TG={token:true,chats:chats.length};cacheSave();box.innerHTML='<p class="ok">Prijungta! Patikrinkite Telegram, turėjo ateiti žinutė.</p>'}
+  catch(e){box.innerHTML='<p class="no">Nepavyko išsaugoti: '+esc(e.message)+'</p>'}
+}
+async function saveConfig(){
+  const q=draft;
+  ['dailyMax','satBonusPerDay','sunHwBonus','penaltyStep','penaltyMax'].forEach(f=>q[f]=Math.max(0,parseInt(q[f],10)||0));
+  q.tasks.forEach(t=>{t.pts=Math.max(0,parseInt(t.pts,10)||0);t.timer=Math.max(0,parseInt(t.timer,10)||0)});
+  try{await rpc('tl_save_config',{p_key:KEY,p_config:q});C=JSON.parse(JSON.stringify(q));dirty=false;draft=null;cacheSave();toast('Nustatymai išsaugoti');renderParent()}
+  catch(e){toast('Nepavyko išsaugoti: '+e.message)}
+}
+function markDirty(){dirty=true;const b=document.querySelector('[data-act="save-config"]');if(b){b.disabled=false;b.textContent='Išsaugoti nustatymus'}}
+
+/* ---------- events ---------- */
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]');if(!el)return;
+  const a=el.dataset.act,k=keyOf(today());
+  if(a==='task'){const t=C.tasks.find(x=>x.id===el.dataset.id);const r=rec(k);if(['check','hw','bag'].includes(t.type))openSheet(t.id);else if(r.done[t.id]){undoInfo={id:t.id,k};toast('Jau atlikta ✓',true)}else markDone(t.id);return}
+  if(a==='done'){markDone(el.dataset.id);return}
+  if(a==='open'){openSheet(el.dataset.id);return}
+  if(a==='undo'){undo();return}
+  if(a==='timer'){const t=C.tasks.find(x=>x.id===el.dataset.id);timer={id:t.id,end:Date.now()+t.timer*60000};ding(false);render();return}
+  if(a==='timer-stop'){timer=null;render();return}
+  if(a==='sheet-close'){closeSheet();return}
+  if(a==='sys'){const r=rec(k,true);r.checks[el.dataset.sys]=!r.checks[el.dataset.sys];saveDay(k,null);renderSheet();render();return}
+  if(a==='chip'){const i=document.getElementById('hw-input');i.value=el.dataset.text+': ';i.focus();return}
+  if(a==='hw-add'){addHw();return}
+  if(a==='hw-del'){const r=rec(k,true);r.hw.splice(+el.dataset.i,1);saveDay(k,null);renderSheet();render();return}
+  if(a==='hw-tick'){const r=rec(k,true);const h=r.hw[+el.dataset.i];h.done=!h.done;saveDay(k,null);renderSheet();render();return}
+  if(a==='check-done'){const r=rec(k);const t=C.tasks.find(x=>x.id===sheetFor);const list=r.hw.length?'Užduota: '+r.hw.map(h=>h.text).join('; '):'Užduota: nieko neįrašyta';closeSheet();markDone(t.id,list);return}
+  if(a==='hw-done'||a==='hw-none'){const t=C.tasks.find(x=>x.id===sheetFor);closeSheet();markDone(t.id,a==='hw-none'?'Pažymėjo: nieko neužduota':null);return}
+  if(a==='bag'){const r=rec(k,true);const it=el.dataset.item;r.bag[it]=!r.bag[it];saveDay(k,null);renderSheet();return}
+  if(a==='bag-done'){const t=C.tasks.find(x=>x.id===sheetFor);closeSheet();markDone(t.id);return}
+  // parent
+  if(a==='tab'){if(tab==='set'&&dirty&&el.dataset.tab!=='set'){toast('Pirma išsaugokite nustatymus');return}tab=el.dataset.tab;if(tab==='set'&&!dirty)draft=null;render();scrollTo(0,0);return}
+  if(a==='p-toggle'){const r=rec(k,true);const id=el.dataset.id;if(r.done[id])delete r.done[id];else r.done[id]=Date.now();saveDay(k,null);render();return}
+  if(a==='tday'){const t=draft.tasks[+el.dataset.i];const dw=+el.dataset.d;t.days=t.days||[];t.days=t.days.includes(dw)?t.days.filter(x=>x!==dw):t.days.concat(dw);el.classList.toggle('on');markDirty();refreshSums();return}
+  if(a==='tdel'){if(el.dataset.confirm!=='1'){el.dataset.confirm='1';el.textContent='Tikrai ištrinti?';return}draft.tasks.splice(+el.dataset.i,1);markDirty();renderParent();return}
+  if(a==='tadd'){draft.tasks.push({id:'t'+Date.now().toString(36),icon:'⭐',title:'Nauja užduotis',pts:2,part:'vakaras',days:[1,2,3,4,5],type:'simple',timer:0});markDirty();renderParent();return}
+  if(a==='save-config'){saveConfig();return}
+  if(a==='copy'){const inp=document.getElementById(el.dataset.target);const v=inp.value;(navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>toast('Nukopijuota')).catch(()=>{inp.select();toast('Pažymėta, nukopijuokite')});return}
+  if(a==='tg-find'){tgFind();return}
+  if(a==='tg-save'){tgSave();return}
+});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='hw-input'){e.preventDefault();addHw()}if(e.key==='Escape'&&sheetFor)closeSheet()});
+document.getElementById('sheet').addEventListener('click',e=>{if(e.target.id==='sheet')closeSheet()});
+function addHw(){const i=document.getElementById('hw-input');const v=(i.value||'').trim();if(!v||/:\s*$/.test(v)&&v.length<4)return;const k=keyOf(today()),r=rec(k,true);r.hw.push({text:v.slice(0,120),done:false});saveDay(k,null);renderSheet();render();const ni=document.getElementById('hw-input');if(ni)ni.focus()}
+document.addEventListener('input',e=>{
+  const el=e.target;if(!draft)return;
+  if(el.dataset.cf){draft[el.dataset.cf]=el.value;markDirty();if(el.dataset.cf==='dailyMax')refreshSums()}
+  else if(el.dataset.tr){draft.training=draft.training||{};if(el.value)draft.training[el.dataset.tr]=el.value;else delete draft.training[el.dataset.tr];markDirty();refreshSums()}
+  else if(el.dataset.tt){draft.timetable=draft.timetable||{};draft.timetable[el.dataset.tt]=el.value.split('\n').map(s=>s.trim()).filter(Boolean);draft.ttExample=false;markDirty()}
+  else if(el.dataset.bag){draft.bagExtras=el.value.split('\n').map(s=>s.trim()).filter(Boolean);markDirty()}
+  else if(el.dataset.ti){const t=draft.tasks[+el.dataset.ti];t[el.dataset.f]=el.value;markDirty();if(el.dataset.f==='pts')refreshSums()}
+});
+document.addEventListener('change',e=>{const el=e.target;if(draft&&el.dataset.ti&&el.dataset.f==='type'){draft.tasks[+el.dataset.ti].type=el.value;markDirty();renderParent()}});
+function refreshSums(){const box=document.querySelector('.sums');if(!box||!draft)return;box.innerHTML=WEEK_ORDER.map(dw=>{const s=draft.tasks.filter(t=>t.type==='train'?!!(draft.training||{})[dw]:(t.days||[]).includes(dw)).reduce((a,t)=>a+(parseInt(t.pts,10)||0),0);return '<span class="'+(s===(parseInt(draft.dailyMax,10)||0)?'':'bad')+'">'+DAY_SHORT[dw]+' '+s+'</span>'}).join('')}
+
+/* ---------- boot ---------- */
+function showBadKey(){document.getElementById('app').innerHTML='<div class="center"><h2>Nuoroda neteisinga</h2><p>Atidarykite nuorodą, kurią gavote iš tėvų.</p></div>'}
+let lastDay=keyOf(today());
+function render(){
+  if(!C)return;
+  if(ROLE==='parent'){if(tab==='set'&&document.querySelector('.savebar'))return;renderParent()}
+  else renderChild();
+}
+function renderForce(){if(ROLE==='parent'&&tab==='set'){renderParent();return}render()}
+async function refresh(){
+  const ok=await loadServer();if(!ok)return;
+  if(ROLE==='parent'&&tab==='set')return;
+  if(sheetFor){renderSheet()}
+  render();
+}
+async function boot(){
+  if(!KEY&&!DEMO){showBadKey();return}
+  cacheLoad();
+  if(C){render()}
+  const ok=await loadServer();if(!ok)return;
+  renderForce();
+}
+// keep fresh: poll while visible, catch day changes
+setInterval(()=>{if(document.visibilityState!=='visible')return;if(keyOf(today())!==lastDay){lastDay=keyOf(today());closeSheet();timer=null;renderForce()}refresh()},20000);
+setInterval(()=>{if(document.visibilityState==='visible'&&ROLE!=='parent'&&!sheetFor)render()},60000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refresh()});
+window.addEventListener('online',flush);
+boot();
+})();
+</script>
+</body>
+</html>
