@@ -105,6 +105,17 @@ h1,h2,h3{font-family:var(--f-display);font-weight:800;line-height:1.1;margin:0;t
 .lessons li{counter-increment:l;font-size:13px;font-weight:800;background:var(--surface-2);border-radius:8px;padding:3px 8px}
 .lessons li::before{content:counter(l) ". ";color:var(--ink-soft)}
 .note{font-size:12px;color:var(--ink-soft);font-weight:700}
+.linkbtn{border:0;background:var(--accent-soft);color:var(--accent);font-weight:800;font-size:14px;border-radius:10px;padding:6px 10px;margin-top:8px;min-height:36px}
+/* Timetable */
+.tt{display:flex;flex-direction:column;gap:8px;scroll-margin-top:12px}
+.tt-day{background:var(--surface);border-radius:var(--r);padding:10px 12px;box-shadow:var(--shadow);display:flex;gap:10px;align-items:flex-start}
+.tt-day .dn{font-family:var(--f-display);font-size:20px;line-height:1.3;width:34px;flex:none;color:var(--ink-soft)}
+.tt-day .tx{flex:1;min-width:0}
+.tt-day .lessons{margin:2px 0 0}
+.tt-day .tag{display:inline-block;font-size:12px;font-weight:800;border-radius:8px;padding:2px 8px;margin:6px 6px 0 0;background:var(--gold-soft);color:var(--gold)}
+.tt-day.today{outline:3px solid var(--accent);outline-offset:-3px}
+.tt-day.today .dn{color:var(--accent)}
+.tt-day.past{opacity:.6}
 
 /* Focus card */
 .focus{background:var(--surface);border:3px solid var(--accent);border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow)}
@@ -465,7 +476,7 @@ function renderChild(){
   if(s.pen.amount)cards.push('<div class="card warn"><div class="ic">⚠️</div><div class="tx"><h3>Bauda −'+s.pen.amount+' min</h3><p>'+(s.pen.n===1?'Vakar ne visos užduotys buvo atliktos.':'Jau '+s.pen.n+' '+plural(s.pen.n,'diena','dienos','dienų')+' iš eilės ne visos užduotys atliktos.')+' Atlik šiandien viską, ir rytoj baudos nebus.</p></div></div>');
   const tt=trainingText(d);
   if(tt)cards.push('<div class="card"><div class="ic">🏀</div><div class="tx"><h3>Krepšinis '+esc(trainingAt(dow))+'</h3><p>'+esc(tt)+'</p></div></div>');
-  if(dow>=1&&dow<=5){const ls=lessonsOf(d);cards.push('<div class="card"><div class="ic">🏫</div><div class="tx"><h3>Šiandienos pamokos</h3>'+(ls.length?'<ol class="lessons">'+ls.map(l=>'<li>'+esc(l)+'</li>').join('')+'</ol>':'<p>Tvarkaraštis dar neįvestas.</p>')+(C.ttExample?'<p class="note">Pavyzdinis tvarkaraštis. Tėvai jį pakeis.</p>':'')+'</div></div>')}
+  {const school=dow>=1&&dow<=5,ld=school?d:nextSchoolDay(d),ls=lessonsOf(ld);cards.push('<div class="card"><div class="ic">🏫</div><div class="tx"><h3>'+(school?'Šiandienos pamokos':(keyOf(ld)===keyOf(addDays(d,1))?'Rytojaus pamokos':DAY_LONG[ld.getDay()]+': pamokos'))+'</h3>'+(ls.length?'<ol class="lessons">'+ls.map(l=>'<li>'+esc(l)+'</li>').join('')+'</ol>':'<p>Tvarkaraštis dar neįvestas.</p>')+(C.ttExample?'<p class="note">Pavyzdinis tvarkaraštis. Tėvai jį pakeis.</p>':'')+'<button class="linkbtn" data-act="tt-scroll">📅 Visos savaitės tvarkaraštis</button></div></div>')}
   if(dow===6)cards.push('<div class="card gold"><div class="ic">🎁</div><div class="tx"><h3>Šeštadienio premija +'+s.sat+' min</h3><p>'+s.satDays+' '+plural(s.satDays,'pilna diena','pilnos dienos','pilnų dienų')+' per savaitę × '+C.satBonusPerDay+' min.</p></div></div>');
   else{const w=satWindowCount(d);cards.push('<div class="card gold"><div class="ic">🎁</div><div class="tx"><h3>Šeštadienį: +'+(w.c*C.satBonusPerDay)+' min</h3><p>Šią savaitę '+w.c+' '+plural(w.c,'pilna diena','pilnos dienos','pilnų dienų')+'. Kiekviena pilna diena prideda '+C.satBonusPerDay+' min.'+(dow===0?' Šiandien už kiekvieną padarytą namų darbą dar +'+C.sunHwBonus+' min.':'')+'</p></div></div>')}
   h+='<section class="info">'+cards.join('')+'</section>';
@@ -488,8 +499,23 @@ function renderChild(){
       return '<button class="task'+(done?' done':'')+(nt&&nt.id===t.id?' next':'')+'" data-act="task" data-id="'+t.id+'"><span class="ic">'+esc(t.icon)+'</span><span class="t">'+esc(t.title)+(sb?'<small>'+esc(sb)+'</small>':'')+'</span><span class="pts">+'+t.pts+'</span><span class="ck">✓</span></button>';
     }).join('')+'</section>';
   });
+  h+=timetableHTML(d);
   document.getElementById('app').innerHTML=h;
   paintSync();
+}
+
+function timetableHTML(d){
+  const dow=d.getDay(),tm=keyOf(addDays(d,1));
+  const mon=addDays(d,dow===0?1:(dow===6?2:1-dow)); // šią savaitę, savaitgalį rodom ateinančią
+  return '<section class="part tt" id="tvarkarastis"><h2>📅 Pamokų tvarkaraštis</h2>'+[1,2,3,4,5].map(i=>{
+    const x=addDays(mon,i-1),ls=lessonsOf(x),tr=trainingAt(i),isT=keyOf(x)===keyOf(d);
+    const cls='tt-day'+(isT?' today':'')+(x<d&&!isT?' past':'');
+    return '<div class="'+cls+'"><div class="dn">'+DAY_SHORT[i]+'</div><div class="tx">'+
+      (ls.length?'<ol class="lessons">'+ls.map(l=>'<li>'+esc(l)+'</li>').join('')+'</ol>':'<p class="note">Pamokos neįvestos</p>')+
+      (isT?'<span class="tag" style="background:var(--accent-soft);color:var(--accent)">Šiandien</span>':'')+
+      (keyOf(x)===tm&&!isT?'<span class="tag" style="background:var(--surface-2);color:var(--ink)">Rytoj</span>':'')+
+      (tr?'<span class="tag">🏀 Krepšinis '+esc(tr)+'</span>':'')+'</div></div>';
+  }).join('')+(C.ttExample?'<p class="note">Pavyzdinis tvarkaraštis. Tėvai jį pakeis.</p>':'')+'</section>';
 }
 
 /* ---------- sheets ---------- */
@@ -713,6 +739,7 @@ document.addEventListener('click',e=>{
   if(a==='timer'){const t=C.tasks.find(x=>x.id===el.dataset.id);timer={id:t.id,end:Date.now()+t.timer*60000};ding(false);render();return}
   if(a==='timer-stop'){timer=null;render();return}
   if(a==='sheet-close'){closeSheet();return}
+  if(a==='tt-scroll'){const t=document.getElementById('tvarkarastis');if(t)t.scrollIntoView({block:'start'});return}
   if(a==='sys'){const r=rec(k,true);r.checks[el.dataset.sys]=!r.checks[el.dataset.sys];saveDay(k,null);renderSheet();render();return}
   if(a==='chip'){const i=document.getElementById('hw-input');i.value=el.dataset.text+': ';i.focus();return}
   if(a==='hw-add'){addHw();return}
