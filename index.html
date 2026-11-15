@@ -377,10 +377,19 @@ function satWindowCount(d){
   for(let x=addDays(sat,-7);x<=d;x=addDays(x,1)){const k=keyOf(x);if(k>=C.startDate&&isPerfect(k))c++}
   return{c,final:false};
 }
+function dayPts(d){
+  const ts=tasksFor(d),M=+C.dailyMax||30,W=ts.reduce((a,t)=>a+(+t.pts||0),0),o={};
+  if(!W||W===M){ts.forEach(t=>o[t.id]=+t.pts||0);return o}
+  const raw=ts.map((t,i)=>{const x=(+t.pts||0)*M/W,f=Math.floor(x);return{id:t.id,f,r:x-f,i}});
+  let left=M-raw.reduce((a,x)=>a+x.f,0);
+  raw.slice().sort((a,b)=>b.r-a.r||a.i-b.i).forEach(x=>{if(left>0&&x.r>0){x.f++;left--}});
+  raw.forEach(x=>o[x.id]=x.f);return o;
+}
+function P(t,d){const m=dayPts(d||today());return m[t.id]!=null?m[t.id]:(+t.pts||0)}
 function summarize(k){
   const d=fromKey(k),r=rec(k),ts=tasksFor(d),dow=d.getDay();
   let sum=0;const missing=[];
-  ts.forEach(t=>{if(r.done[t.id])sum+=(+t.pts||0);else missing.push(t.title)});
+  const dp=dayPts(d);ts.forEach(t=>{if(r.done[t.id])sum+=(dp[t.id]||0);else missing.push(t.title)});
   const max=+C.dailyMax||30,earned=Math.min(sum,max),allDone=ts.length>0&&missing.length===0;
   let sat=0,sun=0,satDays=0;
   if(dow===6){satDays=satWindowCount(d).c;sat=satDays*(+C.satBonusPerDay||0)}
@@ -485,7 +494,7 @@ function trainingText(d){
 
 /* ---------- render: child ---------- */
 function boardHTML(s,showSegs){
-  const segs=s.ts.map(t=>'<span class="seg'+(rec(keyOf(today())).done[t.id]?' on':'')+'" style="flex-grow:'+(+t.pts||1)+'"></span>').join('');
+  const segs=s.ts.map(t=>'<span class="seg'+(rec(keyOf(today())).done[t.id]?' on':'')+'" style="flex-grow:'+(P(t)||1)+'"></span>').join('');
   const chips=[];
   if(s.sat)chips.push('<span class="chip plus">Savaitės premija +'+s.sat+' min</span>');
   if(s.sun)chips.push('<span class="chip plus">Už namų darbus +'+s.sun+' min</span>');
@@ -528,7 +537,7 @@ function renderChild(){
   if(nt){
     const special=['check','hw','bag'].includes(nt.type);
     h+='<section class="focus" aria-label="Dabar darom"><div class="lbl">Dabar darom</div>'+
-      '<div class="focus-title"><span class="ic">'+esc(nt.icon)+'</span><h2>'+esc(nt.title)+'</h2><span class="pts">+'+nt.pts+'</span></div>';
+      '<div class="focus-title"><span class="ic">'+esc(nt.icon)+'</span><h2>'+esc(nt.title)+'</h2><span class="pts">+'+P(nt)+'</span></div>';
     if(timer&&timer.id===nt.id)h+='<div class="timer"><span class="led" id="tleft">'+fmtLeft()+'</span><span class="note">Dirbk, kol baigsis laikas</span><button class="ghost" data-act="timer-stop">Sustabdyti</button></div>';
     h+='<div class="btns"><button class="big" data-act="'+(special?'open':'done')+'" data-id="'+nt.id+'">'+(special?'Pradėti':'Padariau!')+'</button>'+
       (nt.timer&&!(timer&&timer.id===nt.id)?'<button class="ghost" data-act="timer" data-id="'+nt.id+'">⏱ '+nt.timer+' min</button>':'')+'</div></section>';
@@ -539,7 +548,7 @@ function renderChild(){
     const dn=items.filter(t=>r.done[t.id]).length;
     h+='<section class="part"><h2>'+p.label+' <span>'+dn+'/'+items.length+'</span></h2>'+items.map(t=>{
       const done=!!r.done[t.id];const sb=sub(t,r,d);
-      return '<button class="task'+(done?' done':'')+(nt&&nt.id===t.id?' next':'')+'" data-act="task" data-id="'+t.id+'"><span class="ic">'+esc(t.icon)+'</span><span class="t">'+esc(t.title)+(sb?'<small>'+esc(sb)+'</small>':'')+'</span><span class="pts">+'+t.pts+'</span><span class="ck">✓</span></button>';
+      return '<button class="task'+(done?' done':'')+(nt&&nt.id===t.id?' next':'')+'" data-act="task" data-id="'+t.id+'"><span class="ic">'+esc(t.icon)+'</span><span class="t">'+esc(t.title)+(sb?'<small>'+esc(sb)+'</small>':'')+'</span><span class="pts">+'+P(t)+'</span><span class="ck">✓</span></button>';
     }).join('')+'</section>';
   });
   h+=timetableHTML(d);
@@ -583,7 +592,7 @@ function renderSheet(){
           '</div>'}).join('');
     }
     const allSys=SYSTEMS.every(sy=>r.checks[sy.id]),allLes=ls.every(l=>r.les[l]&&r.les[l].s),all=allSys&&allLes;
-    b+=done?'<div class="hint">Jau patikrinta ✓</div>':'<button class="big" data-act="check-done" '+(all?'':'disabled')+'>Patikrinau! +'+t.pts+'</button>'+(all?'':'<p class="note">'+(!allSys&&!allLes?'Pažymėk visas tris sistemas ir kiekvieną pamoką.':!allSys?'Pažymėk visas tris sistemas.':'Pažymėk kiekvieną pamoką: „Nieko“ arba „Užduota“.')+'</p>');
+    b+=done?'<div class="hint">Jau patikrinta ✓</div>':'<button class="big" data-act="check-done" '+(all?'':'disabled')+'>Patikrinau! +'+P(t)+'</button>'+(all?'':'<p class="note">'+(!allSys&&!allLes?'Pažymėk visas tris sistemas ir kiekvieną pamoką.':!allSys?'Pažymėk visas tris sistemas.':'Pažymėk kiekvieną pamoką: „Nieko“ arba „Užduota“.')+'</p>');
   }else if(t.type==='hw'){
     const ct=C.tasks.find(x=>x.type==='check');
     if(ct&&tasksFor(d).includes(ct)&&!r.done[ct.id])b+='<div class="hint">Pirma patikrink TAMO, Eduka ir Google Classroom, kas užduota.</div>';
@@ -596,7 +605,7 @@ function renderSheet(){
     const n=items.length,allDone=n>0&&items.every(h=>h.done);
     if(done)b+='<div class="hint">Namų darbai padaryti ✓</div>';
     else{
-      b+='<button class="big" data-act="hw-done" '+(allDone?'':'disabled')+'>Visi namų darbai padaryti! +'+t.pts+'</button>';
+      b+='<button class="big" data-act="hw-done" '+(allDone?'':'disabled')+'>Visi namų darbai padaryti! +'+P(t)+'</button>';
       if(!n)b+='<button class="ghost" data-act="hw-none">Šiandien nieko neužduota</button>';
     }
   }else if(t.type==='bag'){
@@ -606,7 +615,7 @@ function renderSheet(){
       return '<div class="bgroup"><div class="bg-h'+(c===g.items.length?' full':'')+'">'+g.icon+' '+esc(g.title)+'<span>'+c+'/'+g.items.length+'</span></div>'+
         g.items.map(it=>'<button class="row'+(r.bag[it.key]?' on':'')+'" data-act="bag" data-item="'+esc(it.key)+'"><span class="ck">✓</span><span class="t">'+esc(it.label)+'</span></button>').join('')+'</div>'}).join('');
     const all=items.every(it=>r.bag[it]);
-    b+=done?'<div class="hint">Kuprinė paruošta ✓</div>':'<button class="big" data-act="bag-done" '+(all?'':'disabled')+'>Kuprinė paruošta! +'+t.pts+'</button>';
+    b+=done?'<div class="hint">Kuprinė paruošta ✓</div>':'<button class="big" data-act="bag-done" '+(all?'':'disabled')+'>Kuprinė paruošta! +'+P(t)+'</button>';
   }
   b+='</div>';
   const old=el.querySelector('.sheet'),same=old&&el.dataset.for===sheetFor,st=same?old.scrollTop:0;
@@ -632,14 +641,14 @@ function markDone(id,extra){
   const s=stamp(k);
   let ev=null;
   if(ROLE==='child'){
-    ev='✅ '+name()+': '+t.title+' (+'+t.pts+')'+(extra?'\n'+extra:'')+'\nŠiandien '+s.earned+'/'+s.max+' taškų.';
+    ev='✅ '+name()+': '+t.title+' (+'+P(t)+')'+(extra?'\n'+extra:'')+'\nŠiandien '+s.earned+'/'+s.max+' taškų.';
     if(s.allDone)ev+='\n🏆 Visos dienos užduotys atliktos! Ekrano laikas šiandien: '+s.screen+' min.';
   }
   saveDay(k,ev);
   undoInfo={id,k};
-  fly('+'+t.pts);ding(s.allDone);
+  fly('+'+P(t));ding(s.allDone);
   if(s.allDone&&!before.allDone)confetti();
-  toast(s.allDone?'Visos užduotys atliktos! 🏆':'Šaunuolis! +'+t.pts+' '+plural(t.pts,'taškas','taškai','taškų'),true);
+  toast(s.allDone?'Visos užduotys atliktos! 🏆':'Šaunuolis! +'+P(t)+' '+plural(P(t),'taškas','taškai','taškų'),true);
   if(timer&&timer.id===id)timer=null;
   render();
 }
@@ -685,7 +694,7 @@ function parentToday(d,k){
   h+='<div class="panel"><h3>'+esc(name())+' šiandien</h3>';
   h+='<p>Taškai '+s.earned+'/'+s.max+(s.sat?' · savaitės premija +'+s.sat:'')+(s.sun?' · ND premija +'+s.sun:'')+(pn.amount?' · bauda −'+pn.amount:'')+' = <b>'+s.screen+' min</b> ekrano laiko.</p>';
   if(!s.allDone)h+='<p class="note">Jei šiandien liks neatliktų užduočių, rytoj bauda bus −'+pn.next+' min.</p>';
-  h+=s.ts.map(t=>{const dn=r.done[t.id];return '<div class="ptask"><span style="font-size:22px">'+esc(t.icon)+'</span><span class="t">'+esc(t.title)+'<small>+'+t.pts+(dn?' · atlikta '+new Date(dn).toLocaleTimeString('lt-LT',{hour:'2-digit',minute:'2-digit'}):'')+'</small></span><button class="toggle'+(dn?' on':'')+'" data-act="p-toggle" data-id="'+t.id+'">'+(dn?'Atlikta ✓':'Neatlikta')+'</button></div>'}).join('');
+  h+=s.ts.map(t=>{const dn=r.done[t.id];return '<div class="ptask"><span style="font-size:22px">'+esc(t.icon)+'</span><span class="t">'+esc(t.title)+'<small>+'+P(t,d)+(dn?' · atlikta '+new Date(dn).toLocaleTimeString('lt-LT',{hour:'2-digit',minute:'2-digit'}):'')+'</small></span><button class="toggle'+(dn?' on':'')+'" data-act="p-toggle" data-id="'+t.id+'">'+(dn?'Atlikta ✓':'Neatlikta')+'</button></div>'}).join('');
   h+='</div>';
   const pls=schoolLessons(d);
   const prow=(t,cls,st)=>'<div class="ptask"><span class="t">'+t+'</span><span class="'+cls+'">'+st+'</span></div>';
@@ -737,7 +746,7 @@ function parentSettings(){
     '<p class="note">Viena pamoka eilutėje: „Pamoka: daiktas, daiktas“. Pavadinimas turi sutapti su tvarkaraščiu. Jei po dvitaškio tuščia, tai pamokai nieko nereikia.</p></div>';
   // tasks
   const sums=WEEK_ORDER.map(dw=>{const s=q.tasks.filter(t=>t.type==='train'?!!(q.training||{})[dw]:(t.days||[]).includes(dw)).reduce((a,t)=>a+(+t.pts||0),0);return '<span class="'+(s===+q.dailyMax?'':'bad')+'">'+DAY_SHORT[dw]+' '+s+'</span>'}).join('');
-  h+='<div class="panel"><h3>Užduotys</h3><p class="note">Taškų suma kiekvienai dienai (turėtų būti '+q.dailyMax+'):</p><div class="sums">'+sums+'</div>';
+  h+='<div class="panel"><h3>Užduotys</h3><p class="note">Taškų suma kiekvienai dienai. Jei ji ne '+q.dailyMax+', tą dieną vaikui taškai automatiškai perskaičiuojami, kad iš viso būtų '+q.dailyMax+'.</p><div class="sums">'+sums+'</div>';
   h+=q.tasks.map((t,i)=>'<div class="trow">'+
     '<div class="tline"><input type="text" class="ico" id="ti-'+i+'-icon" data-ti="'+i+'" data-f="icon" value="'+esc(t.icon)+'" aria-label="Ženkliukas" maxlength="4"><input type="text" id="ti-'+i+'-title" data-ti="'+i+'" data-f="title" value="'+esc(t.title)+'" aria-label="Pavadinimas"></div>'+
     '<div class="tgrid"><label class="f">Taškai<input type="number" id="ti-'+i+'-pts" data-ti="'+i+'" data-f="pts" value="'+esc(t.pts)+'" min="0" max="30"></label>'+
