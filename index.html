@@ -151,6 +151,39 @@ h1,h2,h3{font-family:var(--f-display);font-weight:800;line-height:1.1;margin:0;t
 .task.done .pts{background:transparent;color:var(--good)}
 .task.next{outline:3px solid var(--accent);outline-offset:-3px}
 
+/* Dreams, money, journal */
+.quick{display:flex;flex-wrap:wrap;gap:8px}
+.quick button{flex:1 1 auto;border:0;background:var(--surface);color:var(--ink);box-shadow:var(--shadow);border-radius:14px;min-height:46px;padding:6px 10px;font-weight:800;font-size:15px;white-space:nowrap}
+#zurnalas,#pinigai,#svajones{scroll-margin-top:12px}
+.jcard{display:flex;flex-direction:column;gap:6px;text-align:left;width:100%;border:0;background:var(--surface);color:inherit;border-radius:var(--r);box-shadow:var(--shadow);padding:14px;font:inherit;font-weight:700}
+.jcard b{font-size:17px}.jcard ol{margin:0;padding-left:22px}.jcard.done{background:var(--good-soft);box-shadow:none}
+.jl{color:var(--accent);font-weight:800;font-size:14px}.jcard.done .jl{color:var(--good)}
+.jcard li,.jday li,.mlist span,.dt{overflow-wrap:anywhere}
+.jrow{display:flex;align-items:center;gap:10px}
+.jrow span{font-family:var(--f-display);font-weight:800;font-size:22px;color:var(--gold);width:20px;text-align:center;flex:none}
+.jday{background:var(--surface-2);border-radius:12px;padding:8px 12px;font-size:14px;font-weight:700}.jday b{color:var(--ink-soft)}.jday ul{margin:2px 0 0;padding-left:18px}
+.money{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:14px;display:flex;flex-direction:column;gap:8px}
+.money .big{flex:0 0 auto}
+.ml{font-weight:800;color:var(--ink-soft)}
+.mv{font-family:var(--f-display);font-weight:800;font-size:38px;line-height:1.1;color:var(--good);font-variant-numeric:tabular-nums}
+.mbtns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mb{border:0;border-radius:16px;min-height:64px;font-family:var(--f-display);font-weight:800;font-size:30px;line-height:1;display:flex;align-items:center;justify-content:center;gap:10px}
+.mb small{font-family:var(--f-body);font-size:16px}
+.mb.plus{background:var(--good-soft);color:var(--good)}.mb.minus{background:var(--bad-soft);color:var(--bad)}
+.mlist{list-style:none;margin:0;padding:0;font-weight:700;font-size:14px}
+.mlist li{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-top:1px solid var(--line)}
+.mlist b{white-space:nowrap}
+.money .linkbtn{align-self:flex-start}
+.dreams{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.dream{display:flex;flex-direction:column;gap:6px;text-align:left;border:0;background:var(--surface);color:inherit;border-radius:var(--r);box-shadow:var(--shadow);padding:12px;min-height:128px;min-width:0;font:inherit}
+.panel .dream{background:var(--surface-2);box-shadow:none;min-height:0}
+.dream.ok{background:var(--good-soft)}
+.dt{font-weight:900;font-size:16px;line-height:1.2}.dp{font-family:var(--f-display);font-weight:800;font-size:20px;color:var(--gold)}
+.dbar{height:10px;border-radius:6px;background:var(--line);overflow:hidden;margin-top:auto;display:block}.dbar i{display:block;height:100%;background:var(--good)}
+.dl{font-weight:800;font-size:13px;color:var(--ink-soft)}.dream.ok .dl{color:var(--good)}
+.dream.add{align-items:center;justify-content:center;background:transparent;box-shadow:none;border:3px dashed var(--line)}
+.dream.add .plus{font-family:var(--f-display);font-weight:800;font-size:44px;line-height:1;color:var(--accent)}
+
 /* Sheet */
 .veil{position:fixed;inset:0;background:rgba(6,10,20,.55);z-index:40;display:flex;align-items:flex-end;justify-content:center}
 .sheet{background:var(--bg);width:100%;max-width:600px;max-height:92vh;overflow:auto;border-radius:24px 24px 0 0;padding:18px max(16px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px}
@@ -331,6 +364,10 @@ let D={};             // days
 let TG={token:false,chats:0};
 let CHILD_KEY='';
 let pending={};       // day keys waiting to sync
+let seq={};           // per-day change counter (this session)
+let I={};             // child items: id -> {kind,data}
+let pendI={};         // items waiting to sync: id -> {kind,data|null}
+let itemVer=0;
 let syncState='wait';
 let tab='today';
 let draft=null;       // parent settings working copy
@@ -339,8 +376,8 @@ let timer=null;       // {id,end,min}
 let sheetFor=null;
 let undoInfo=null;
 
-function cacheLoad(){try{const c=JSON.parse(localStorage.getItem(CACHE)||'null');if(c){C=c.C;D=c.D||{};pending=c.pending||{};ROLE=ROLE||c.ROLE;TG=c.TG||TG;CHILD_KEY=c.CHILD_KEY||''}}catch(e){}}
-function cacheSave(){try{localStorage.setItem(CACHE,JSON.stringify({C,D,pending,ROLE,TG,CHILD_KEY}))}catch(e){}}
+function cacheLoad(){try{const c=JSON.parse(localStorage.getItem(CACHE)||'null');if(c){C=c.C;D=c.D||{};pending=c.pending||{};I=c.I||{};pendI=c.pendI||{};ROLE=ROLE||c.ROLE;TG=c.TG||TG;CHILD_KEY=c.CHILD_KEY||''}}catch(e){}}
+function cacheSave(){try{localStorage.setItem(CACHE,JSON.stringify({C,D,pending,I,pendI,ROLE,TG,CHILD_KEY}))}catch(e){}}
 
 async function rpc(fn,args){
   if(DEMO){
@@ -354,7 +391,7 @@ async function rpc(fn,args){
 
 /* ---------- rules ---------- */
 function blank(){return{done:{},checks:{},hw:[],bag:{},les:{}}}
-function rec(k,create){let r=D[k];if(!r){r=blank();if(create)D[k]=r}r.done=r.done||{};r.checks=r.checks||{};r.hw=r.hw||[];r.bag=r.bag||{};r.les=r.les||{};r.extra=r.extra||[];return r}
+function rec(k,create){let r=D[k];if(!r){r=blank();if(create)D[k]=r}r.done=r.done||{};r.checks=r.checks||{};r.hw=r.hw||[];r.bag=r.bag||{};r.les=r.les||{};r.extra=r.extra||[];r.journal=r.journal||[];return r}
 function trainingAt(dow){return (C.training&&C.training[String(dow)])||''}
 const nextDow=dow=>(dow+1)%7;
 function partOf(t,dow){if(t.type==='train')return 'vakaras';return t.part}
@@ -413,6 +450,7 @@ function stamp(k){
 
 /* ---------- sync ---------- */
 async function loadServer(){
+  const seq0=Object.assign({},seq),iv0=itemVer;
   try{
     const res=await rpc('tl_load',{p_key:KEY});
     ROLE=res.role;
@@ -420,7 +458,8 @@ async function loadServer(){
     if(cfg)C=cfg;else if(!C)C=defaultConfig();
     if(!cfg&&ROLE==='parent'&&!DEMO){await rpc('tl_save_config',{p_key:KEY,p_config:C})}
     const sd=res.days||{};
-    Object.keys(sd).forEach(k=>{if(!pending[k])D[k]=sd[k]});
+    Object.keys(sd).forEach(k=>{if(!pending[k]&&(seq[k]||0)===(seq0[k]||0))D[k]=sd[k]});
+    if(res.items&&itemVer===iv0){I=res.items;Object.keys(pendI).forEach(id=>{const v=pendI[id];if(v.data)I[id]={kind:v.kind,data:v.data};else delete I[id]})}
     if(res.tg)TG=res.tg;
     if(res.childKey)CHILD_KEY=res.childKey;
     syncState='ok';
@@ -437,20 +476,38 @@ let flushing=false;
 async function flush(){
   if(flushing)return;flushing=true;
   try{
-    for(const k of Object.keys(pending)){
-      const ev=pending[k]===true?null:pending[k];
-      await rpc('tl_save_day',{p_key:KEY,p_day:k,p_rec:D[k],p_event:ev});
-      delete pending[k];
+    for(let guard=0;Object.keys(pending).length&&guard<20;guard++){
+      for(const k of Object.keys(pending)){
+        const ev=pending[k]===true?null:pending[k],n=seq[k]||0;
+        pending[k]=true; // message is on its way; new changes may queue a new one
+        try{await rpc('tl_save_day',{p_key:KEY,p_day:k,p_rec:D[k],p_event:ev})}
+        catch(e){if(ev)pending[k]=typeof pending[k]==='string'?ev+'\n'+pending[k]:ev;throw e}
+        if((seq[k]||0)===n)delete pending[k];
+      }
+    }
+    for(let guard=0;Object.keys(pendI).length&&guard<20;guard++){
+      for(const id of Object.keys(pendI)){
+        const v=pendI[id];
+        try{await rpc('tl_save_item',{p_key:KEY,p_id:id,p_kind:v.kind,p_data:v.data})}
+        catch(e){if(e.message!=='bad_item'&&e.message!=='too_many')throw e;if(v.data)delete I[id];toast('Nepavyko įrašyti')}
+        if(pendI[id]===v)delete pendI[id];
+      }
     }
     syncState='ok';
   }catch(e){syncState='off'}
   flushing=false;cacheSave();paintSync();
 }
 function saveDay(k,event){
-  stamp(k);
+  stamp(k);seq[k]=(seq[k]||0)+1;
   const prev=pending[k];
   // keep the newest message; merge if two pile up offline
   pending[k]=event?(typeof prev==='string'&&prev?prev+'\n'+event:event):(prev||true);
+  cacheSave();flush();
+}
+function saveItem(id,kind,data){
+  itemVer++;
+  if(data)I[id]={kind,data};else delete I[id];
+  pendI[id]={kind,data:data||null};
   cacheSave();flush();
 }
 function paintSync(){const el=document.getElementById('sync');if(!el)return;el.className='sync'+(syncState==='off'?' off':syncState==='wait'?' wait':'');el.lastChild.textContent=syncState==='off'?' Nėra ryšio':syncState==='wait'?' Jungiama…':(DEMO?' Demo':' Išsaugota')}
@@ -531,6 +588,7 @@ function renderChild(){
   let h='<header class="top"><div><h1>Labas'+(call?', '+esc(call):'')+'!</h1><p>'+fmtDate(d)+'</p></div><div class="sync" id="sync"><i></i> </div></header>';
   h+=boardHTML(s,true);
   h+=weekHTML(d);
+  h+=quickHTML(r);
   // info cards
   const cards=[];
   if(s.pen.amount)cards.push('<div class="card warn"><div class="ic">⚠️</div><div class="tx"><h3>Bauda −'+s.pen.amount+' min</h3><p>'+(s.pen.n===1?'Vakar ne visos užduotys buvo atliktos.':'Jau '+s.pen.n+' '+plural(s.pen.n,'diena','dienos','dienų')+' iš eilės ne visos užduotys atliktos.')+' Atlik šiandien viską, ir rytoj baudos nebus.</p></div></div>');
@@ -559,6 +617,7 @@ function renderChild(){
       return '<button class="task'+(done?' done':'')+(nt&&nt.id===t.id?' next':'')+'" data-act="task" data-id="'+t.id+'"><span class="ic">'+esc(t.icon)+'</span><span class="t">'+esc(t.title)+(sb?'<small>'+esc(sb)+'</small>':'')+'</span><span class="pts">+'+P(t)+'</span><span class="ck">✓</span></button>';
     }).join('')+'</section>';
   });
+  h+=mySectionsHTML(r);
   h+=timetableHTML(d);
   document.getElementById('app').innerHTML=h;
   paintSync();
@@ -582,11 +641,104 @@ function timetableHTML(d){
   }).join('')+(C.ttExample?'<p class="note">Pavyzdinis tvarkaraštis. Tėvai jį pakeis.</p>':'')+'</section>';
 }
 
+/* ---------- dreams, money, journal ---------- */
+const MAX_DREAMS=6;
+const eur=c=>(c<0?'−':'')+(Math.abs(c)/100).toLocaleString('lt-LT',{minimumFractionDigits:c%100?2:0,maximumFractionDigits:2})+' €';
+function parseMoney(t){t=String(t||'').replace(/[\s€]/g,'').replace(',','.');if(!/^\d{1,6}(\.\d{1,2})?$/.test(t))return null;return Math.round(parseFloat(t)*100)}
+const newId=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6).replace(/[^a-z0-9]/g,'');
+const itemsOf=kind=>Object.keys(I).filter(id=>I[id].kind===kind).map(id=>Object.assign({id},I[id].data)).sort((a,b)=>a.at-b.at);
+const balance=()=>itemsOf('money').reduce((s,x)=>s+(+x.amt||0),0);
+const journalOf=r=>[0,1,2].map(i=>String((r.journal||[])[i]||''));
+const journalCount=r=>journalOf(r).filter(x=>x.trim()).length;
+function journalPastHTML(d,from,n){
+  let h='';
+  for(let i=from;i<from+n;i++){const x=addDays(d,-i),day=D[keyOf(x)];if(!day)continue;const j=journalOf(day).filter(t=>t.trim());
+    if(j.length)h+='<div class="jday"><b>'+fmtShort(x)+'</b><ul>'+j.map(t=>'<li>'+esc(t)+'</li>').join('')+'</ul></div>'}
+  return h;
+}
+function dreamCardHTML(x,bal,editable){
+  const pct=Math.max(0,Math.min(100,Math.floor(bal*100/x.price))),left=x.price-bal,ok=left<=0;
+  const inner='<span class="dt">'+esc(x.title)+'</span><span class="dp">'+eur(x.price)+'</span><span class="dbar" aria-hidden="true"><i style="width:'+pct+'%"></i></span><span class="dl">'+(ok?'Pinigų užtenka! 🎉':'Trūksta '+eur(left))+'</span>';
+  return editable?'<button class="dream'+(ok?' ok':'')+'" data-act="my" data-s="@dream:'+x.id+'">'+inner+'</button>':'<div class="dream'+(ok?' ok':'')+'">'+inner+'</div>';
+}
+function quickHTML(r){
+  const n=journalCount(r);
+  return '<nav class="quick" aria-label="Greitos nuorodos"><button data-act="my" data-s="@journal">📓 Sėkmės '+n+'/3</button><button data-act="go" data-to="svajones">🌟 Svajonės</button><button data-act="go" data-to="pinigai">💰 '+eur(balance())+'</button></nav>';
+}
+function mySectionsHTML(r){
+  const n=journalCount(r),ds=itemsOf('dream'),bal=balance(),ms=itemsOf('money');
+  let h='<section class="part" id="zurnalas"><h2>📓 Sėkmės žurnalas <span>'+n+'/3</span></h2><button class="jcard'+(n===3?' done':'')+'" data-act="my" data-s="@journal">'+
+    (n?'<ol>'+journalOf(r).filter(t=>t.trim()).map(t=>'<li>'+esc(t)+'</li>').join('')+'</ol><span class="jl">'+(n===3?'Visos trys įrašytos ✓':'Įrašyk dar '+(3-n))+'</span>':'<b>Ką šiandien padarei gerai?</b><span class="jl">Įrašyk tris dalykus</span>')+'</button></section>';
+  h+='<section class="part" id="pinigai"><h2>💰 Mano pinigai</h2><div class="money"><span class="ml">Jau turiu</span><span class="mv">'+eur(bal)+'</span>'+
+    (ms.length?'<div class="mbtns"><button class="mb plus" data-act="my" data-s="@money:plus" aria-label="Gavau pinigų">+<small>Gavau</small></button><button class="mb minus" data-act="my" data-s="@money:minus" aria-label="Išleidau pinigų">−<small>Išleidau</small></button></div>'
+      :'<button class="big" data-act="my" data-s="@money:set">Įrašyti, kiek turiu</button>')+
+    (ms.length?'<ul class="mlist">'+ms.slice(-4).reverse().map(x=>'<li><span>'+esc(x.note||(x.amt>0?'Gavau':'Išleidau'))+'</span><b class="'+(x.amt>0?'ok':'no')+'">'+(x.amt>0?'+':'')+eur(x.amt)+'</b></li>').join('')+'</ul><button class="linkbtn" data-act="my" data-s="@money:set">Pataisyti sumą</button>':'')+'</div></section>';
+  h+='<section class="part" id="svajones"><h2>🌟 Mano svajonės <span>'+ds.length+'/'+MAX_DREAMS+'</span></h2><div class="dreams">'+ds.map(x=>dreamCardHTML(x,bal,true)).join('')+
+    (ds.length<MAX_DREAMS?'<button class="dream add" data-act="my" data-s="@dream:new" aria-label="Pridėti svajonę"><span class="plus">+</span><span class="dl">Pridėti svajonę</span></button>':'')+'</div>'+
+    (ds.length>1?'<p class="note">Juosta rodo, kiek tavo pinigų užtektų kiekvienai svajonei atskirai.</p>':'')+'</section>';
+  return h;
+}
+function renderMySheet(el){
+  const d=today(),r=rec(keyOf(d));const [kind,arg]=sheetFor.slice(1).split(':');
+  const head=(ic,t)=>'<div class="sheet" role="dialog" aria-modal="true" aria-label="'+esc(t)+'"><div class="sheet-head"><span style="font-size:34px">'+ic+'</span><h2>'+esc(t)+'</h2><button class="x" data-act="sheet-close" aria-label="Uždaryti">×</button></div>';
+  const err='<p class="no" id="my-err" role="alert" hidden></p>';
+  let b='';
+  if(kind==='journal'){
+    const j=journalOf(r),ph=['Pvz. padėjau draugui','Pvz. pats susikroviau kuprinę','Pvz. gerai žaidžiau treniruotėje'];
+    b=head('📓','Sėkmės žurnalas')+'<div class="step">Trys dalykai, kuriuos šiandien atlikau gerai</div>'+
+      j.map((t,i)=>'<label class="jrow"><span>'+(i+1)+'</span><input type="text" class="j-in" data-i="'+i+'" value="'+esc(t)+'" placeholder="'+ph[i]+'" maxlength="140" autocomplete="off"></label>').join('')+
+      '<button class="big" data-act="j-save">Išsaugoti</button><p class="note">Tavo sėkmes gali perskaityti ir tėvai.</p>';
+    const past=journalPastHTML(d,1,7);if(past)b+='<div class="step">Ankstesnės sėkmės</div>'+past;
+  }else if(kind==='dream'){
+    const x=arg==='new'?null:(I[arg]&&I[arg].data);if(arg!=='new'&&!x){closeSheet();return}
+    b=head('🌟',x?'Mano svajonė':'Nauja svajonė')+'<label class="f">Apie ką svajoju<input type="text" id="my-title" value="'+esc(x?x.title:'')+'" placeholder="Pvz. naujas krepšinio kamuolys" maxlength="60" autocomplete="off"></label>'+
+      '<label class="f">Kiek reikia pinigų, €<input type="text" inputmode="decimal" id="my-amt" value="'+(x?String(x.price/100).replace('.',','):'')+'" placeholder="Pvz. 35" maxlength="10" autocomplete="off"></label>'+err+
+      '<button class="big" data-act="d-save">Išsaugoti</button>'+(x?'<button class="ghost" data-act="d-del">Ištrinti svajonę</button>':'');
+  }else{
+    const T={plus:['💰','Gavau pinigų','Kiek gavai, €','Iš kur? (nebūtina)','Pvz. močiutė'],minus:['🛒','Išleidau pinigų','Kiek išleidai, €','Kam? (nebūtina)','Pvz. ledai'],set:['💰','Jau turiu pinigų','Kiek iš viso turi, €','','']}[arg];
+    b=head(T[0],T[1])+'<p class="note" style="font-size:14px">Dabar įrašyta: '+eur(balance())+'</p><label class="f">'+T[2]+'<input type="text" inputmode="decimal" id="my-amt" placeholder="Pvz. 12,50" maxlength="10" autocomplete="off"></label>'+
+      (T[3]?'<label class="f">'+T[3]+'<input type="text" id="my-note" placeholder="'+T[4]+'" maxlength="60" autocomplete="off"></label>':'')+err+'<button class="big" data-act="m-save">Įrašyti</button>';
+  }
+  el.innerHTML=b+'</div>';el.hidden=false;el.dataset.for=sheetFor;
+}
+function myErr(t){const e=document.getElementById('my-err');if(e){e.textContent=t;e.hidden=false}}
+// Saves whatever is typed; also runs when the sheet is closed, so nothing is lost
+function saveJournal(){
+  const ins=[...document.querySelectorAll('.j-in')];if(!ins.length)return false;
+  const k=jDay||keyOf(today()),r=rec(k,true),v=ins.map(i=>i.value.trim().slice(0,140));
+  if(JSON.stringify(v)===JSON.stringify(journalOf(r)))return false;
+  r.journal=v;saveDay(k,null);return true;
+}
+let jDay=null,jStart=0; // day and filled lines when the journal was opened
+function mySave(a,el){
+  if(a==='j-save'){const was=jStart;saveJournal();const n=journalCount(rec(jDay||keyOf(today())));closeSheet();render();if(n===3&&was<3){ding(true);toast('Trys sėkmės įrašytos! 🌟')}else toast('Išsaugota');return}
+  const [,arg]=sheetFor.slice(1).split(':');
+  if(a==='d-del'){if(!el.dataset.armed){el.dataset.armed='1';el.textContent='Tikrai ištrinti?';return}saveItem(arg,'dream',null);closeSheet();render();toast('Svajonė ištrinta');return}
+  const amt=parseMoney(document.getElementById('my-amt').value);
+  if(a==='d-save'){
+    const title=document.getElementById('my-title').value.trim().slice(0,60);
+    if(!title){myErr('Įrašyk, apie ką svajoji.');return}
+    if(!amt){myErr('Įrašyk sumą skaičiais, pvz. 35 arba 12,50.');return}
+    if(arg==='new'){if(itemsOf('dream').length>=MAX_DREAMS){myErr('Jau yra '+MAX_DREAMS+' svajonės.');return}saveItem(newId('d'),'dream',{title,price:amt,at:Date.now()})}
+    else saveItem(arg,'dream',{title,price:amt,at:I[arg].data.at});
+    closeSheet();render();toast('Svajonė išsaugota 🌟');return;
+  }
+  // money
+  if(amt===null||(arg!=='set'&&!amt)){myErr('Įrašyk sumą skaičiais, pvz. 5 arba 12,50.');return}
+  const bal=balance(),first=!itemsOf('money').length;
+  let diff=amt,note=(document.getElementById('my-note')||{value:''}).value.trim().slice(0,60);
+  if(arg==='minus'){if(amt>bal){myErr('Tiek pinigų neturi. Dabar įrašyta '+eur(bal)+'.');return}diff=-amt}
+  if(arg==='set'){diff=amt-bal;note=first?'Jau turėjau':'Pataisyta suma'}
+  if(diff)saveItem(newId('m'),'money',{amt:diff,note,at:Date.now()});
+  closeSheet();render();if(arg==='plus')ding(false);toast('Dabar turi '+eur(balance()));
+}
+
 /* ---------- sheets ---------- */
-function openSheet(id){sheetFor=id;renderSheet()}
-function closeSheet(){sheetFor=null;const el=document.getElementById('sheet');el.hidden=true;el.innerHTML=''}
+function openSheet(id){sheetFor=id;jDay=id==='@journal'?keyOf(today()):null;jStart=jDay?journalCount(rec(jDay)):0;renderSheet()}
+function closeSheet(){if(sheetFor==='@journal')saveJournal();sheetFor=null;jDay=null;const el=document.getElementById('sheet');el.hidden=true;el.innerHTML=''}
 function renderSheet(){
   const el=document.getElementById('sheet');if(!sheetFor){closeSheet();return}
+  if(sheetFor.startsWith('@')){hideToast();renderMySheet(el);return}
   const d=today(),k=keyOf(d),r=rec(k),t=C.tasks.find(x=>x.id===sheetFor);if(!t){closeSheet();return}
   const done=!!r.done[t.id];
   let b='<div class="sheet" role="dialog" aria-modal="true" aria-label="'+esc(t.title)+'"><div class="sheet-head"><span style="font-size:34px">'+esc(t.icon)+'</span><h2>'+esc(t.title)+'</h2><button class="x" data-act="sheet-close" aria-label="Uždaryti">×</button></div>';
@@ -726,6 +878,13 @@ function parentToday(d,k){
   {const bi=bagItems(d),bc=bi.filter(x=>r.bag[x]).length,miss=bi.filter(x=>!r.bag[x]);
     h+='<p class="note">Kuprinė: sudėta '+bc+' iš '+bi.length+(miss.length&&bc?'. Trūksta: '+esc(miss.join(', ')):'')+'</p>'}
   h+='</div>';
+  const jp=journalPastHTML(d,0,7);
+  h+='<div class="panel"><h3>📓 Sėkmės žurnalas</h3>'+(jp||'<p class="note">Per pastarąsias 7 dienas dar nieko neįrašyta.</p>')+'</div>';
+  const ds=itemsOf('dream'),bal=balance(),ms=itemsOf('money');
+  h+='<div class="panel"><h3>🌟 Svajonės ir pinigai</h3><p>Turi pinigų: <b>'+(ms.length?eur(bal):'dar neįrašyta')+'</b></p>'+
+    (ds.length?'<div class="dreams">'+ds.map(x=>dreamCardHTML(x,bal,false)).join('')+'</div>':'<p class="note">Svajonių dar neįrašyta.</p>')+
+    (ms.length?'<ul class="mlist">'+ms.slice(-8).reverse().map(x=>'<li><span>'+fmtShort(new Date(x.at))+' · '+esc(x.note||(x.amt>0?'Gavo':'Išleido'))+'</span><b class="'+(x.amt>0?'ok':'no')+'">'+(x.amt>0?'+':'')+eur(x.amt)+'</b></li>').join('')+'</ul>':'')+
+    '<p class="note">Svajones ir pinigus pildo vaikas savo programėlėje.</p></div>';
   return h;
 }
 function parentHist(d){
@@ -839,7 +998,10 @@ document.addEventListener('click',e=>{
   if(a==='undo'){undo();return}
   if(a==='timer'){const t=findTask(el.dataset.id);timer={id:t.id,end:Date.now()+t.timer*60000};ding(false);render();return}
   if(a==='timer-stop'){timer=null;render();return}
-  if(a==='sheet-close'){saveLesText();closeSheet();return}
+  if(a==='sheet-close'){saveLesText();closeSheet();render();return}
+  if(a==='my'){openSheet(el.dataset.s);return}
+  if(a==='go'){const t=document.getElementById(el.dataset.to);if(t)t.scrollIntoView({block:'start'});return}
+  if(['j-save','d-save','d-del','m-save'].includes(a)){mySave(a,el);return}
   if(a==='tt-scroll'){const t=document.getElementById('tvarkarastis');if(t)t.scrollIntoView({block:'start'});return}
   if(a==='sys'){const r=rec(k,true);r.checks[el.dataset.sys]=!r.checks[el.dataset.sys];saveDay(k,null);renderSheet();render();return}
   if(a==='chip'){const i=document.getElementById('hw-input');i.value=el.dataset.text+': ';i.focus();return}
@@ -869,10 +1031,11 @@ return}
   if(a==='tg-save'){tgSave();return}
 });
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='hw-input'){e.preventDefault();addHw()}if(e.key==='Escape'&&sheetFor)closeSheet()});
-document.getElementById('sheet').addEventListener('click',e=>{if(e.target.id==='sheet')closeSheet()});
+document.getElementById('sheet').addEventListener('click',e=>{if(e.target.id==='sheet'){closeSheet();render()}});
 function lessonItemsText(q){const m=Object.assign({},lessonMap(q));const all=[].concat(...Object.values(q.timetable||{}));all.forEach(l=>{if(!Object.keys(m).some(x=>x.trim().toLowerCase()===l.trim().toLowerCase()))m[l]=[]});return Object.entries(m).map(([l,a])=>l+': '+(a||[]).join(', ')).join('\n')}
 function parseLessonItems(txt){const o={};txt.split('\n').forEach(line=>{const i=line.indexOf(':');if(i<1)return;const l=line.slice(0,i).trim();if(l)o[l]=line.slice(i+1).split(',').map(x=>x.trim()).filter(Boolean)});return o}
 function saveLesText(){const k=keyOf(today());let ch=false;document.querySelectorAll('.les-text').forEach(i=>{const r=rec(k,true),st=r.les[i.dataset.les];const v=i.value.trim().slice(0,120);if(st&&(st.text||'')!==v){st.text=v;ch=true}});if(ch)saveDay(k,null)}
+document.addEventListener('change',e=>{if(e.target.classList&&e.target.classList.contains('j-in'))saveJournal()});
 document.addEventListener('change',e=>{if(e.target.classList&&e.target.classList.contains('les-text')){saveLesText();render()}});
 async function addTemp(){
   const ti=document.getElementById('x-title'),title=(ti.value||'').trim().slice(0,60);if(!title){ti.focus();return}
@@ -917,11 +1080,16 @@ function render(){
   else renderChild();
 }
 function renderForce(){if(ROLE==='parent'&&tab==='set'){renderParent();return}render()}
+function formBusy(){
+  const a=document.activeElement;
+  if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)&&a.closest('#app'))return true;
+  return ['x-title','tg-token'].some(id=>{const el=document.getElementById(id);return el&&el.value.trim()});
+}
 async function refresh(){
   const ok=await loadServer();if(!ok)return;
   if(ROLE==='parent'&&tab==='set')return;
-  if(sheetFor){const a=document.activeElement;if(!(a&&a.tagName==='INPUT'&&a.closest('#sheet')))renderSheet()}
-  render();
+  if(sheetFor&&!sheetFor.startsWith('@')){const a=document.activeElement;if(!(a&&a.tagName==='INPUT'&&a.closest('#sheet')))renderSheet()}
+  if(!formBusy())render();
 }
 async function boot(){
   if(!KEY&&!DEMO){showBadKey();return}
