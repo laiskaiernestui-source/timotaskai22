@@ -200,6 +200,9 @@ h1,h2,h3{font-family:var(--f-display);font-weight:800;line-height:1.1;margin:0;t
 .row a{font-weight:800;color:var(--accent);text-decoration:none;font-size:14px;padding:6px 8px;border-radius:8px;background:var(--accent-soft);white-space:nowrap}
 .row .del{border:0;background:transparent;font-size:20px;color:var(--ink-soft);width:36px;height:36px}
 .add{display:flex;gap:8px}
+.xforever{display:flex;align-items:center;gap:10px;margin-top:8px;min-height:44px;font-weight:800;font-size:15px}
+.xforever input{width:24px;height:24px;flex:none;accent-color:var(--accent)}
+input:disabled{opacity:.4}
 .add input{flex:1;min-width:0}
 input[type=text],input[type=number],input[type=time],input[type=date],select,textarea{font:inherit;font-size:16px;font-weight:700;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:10px 12px;min-height:48px;width:100%}
 textarea{min-height:96px;resize:vertical}
@@ -425,6 +428,7 @@ function dayPts(d){
   raw.forEach(x=>o[x.id]=x.f);return o;
 }
 function P(t,d){const m=dayPts(d||today());return m[t.id]!=null?m[t.id]:(+t.pts||0)}
+const FOREVER='9999-12-31';
 function tempActive(k){return (C.tempTasks||[]).filter(x=>x.from<=k&&k<=x.to)}
 function extrasOf(r,k){return (r.extra||[]).concat(k?tempActive(k):[]).map(x=>Object.assign({type:'simple',part:'diena',icon:'⭐',timer:0,days:[],extra:true},x))}
 const daysBetween=(a,b)=>Math.round((fromKey(b)-fromKey(a))/864e5);
@@ -539,7 +543,7 @@ function nextTask(ts,r,dow){
 }
 function sub(t,r,d){
   const dow=d.getDay();
-  if(t.extra){if(t.from&&t.to&&t.to>t.from){const k=keyOf(d),n=daysBetween(t.from,k)+1,tot=daysBetween(t.from,t.to)+1;return 'Papildoma užduotis nuo tėvų · '+n+' diena iš '+tot}return 'Papildoma užduotis nuo tėvų'}
+  if(t.extra){if(t.to===FOREVER)return 'Papildoma užduotis nuo tėvų · kasdien';if(t.from&&t.to&&t.to>t.from){const k=keyOf(d),n=daysBetween(t.from,k)+1,tot=daysBetween(t.from,t.to)+1;return 'Papildoma užduotis nuo tėvų · '+n+' diena iš '+tot}return 'Papildoma užduotis nuo tėvų'}
   if(t.type==='train')return 'Rytoj treniruotė '+trainingAt(nextDow(dow))+' · apranga, sportbačiai, gertuvė';
   if(t.type==='check'){const n=SYSTEMS.filter(s=>r.checks[s.id]).length,lm=lessonsMarked(r,d);return 'Sistemos '+n+'/3'+(lm.ls.length?' · pamokos '+lm.m+'/'+lm.ls.length:'')}
   if(t.type==='hw'){const it=hwItems(r,d),n=it.length,lm=lessonsMarked(r,d);return n?it.filter(h=>h.done).length+' iš '+n+' padaryta':(lm.ls.length&&lm.m===lm.ls.length?'Rytojui nieko neužduota':'Pirma patikrink, kas užduota')}
@@ -860,11 +864,12 @@ function parentToday(d,k){
   if(!s.allDone)h+='<p class="note">Jei šiandien liks neatliktų užduočių, rytoj bauda bus −'+pn.next+' min.</p>';
   h+=s.ts.map(t=>{const dn=r.done[t.id];return '<div class="ptask"><span style="font-size:22px">'+esc(t.icon)+'</span><span class="t">'+esc(t.title)+'<small>+'+P(t,d)+(dn?' · atlikta '+new Date(dn).toLocaleTimeString('lt-LT',{hour:'2-digit',minute:'2-digit'}):'')+'</small></span><button class="toggle'+(dn?' on':'')+'" data-act="p-toggle" data-id="'+t.id+'">'+(dn?'Atlikta ✓':'Neatlikta')+'</button>'+(t.extra?'<button class="del" data-act="x-del" data-id="'+t.id+'" aria-label="Ištrinti užduotį" style="border:0;background:transparent;font-size:20px;color:var(--ink-soft);width:32px;height:36px">×</button>':'')+'</div>'}).join('');
   {const cp=PARTS[curPart()].id;
-  h+='<div class="xadd"><h3 style="margin-top:6px">➕ Papildoma užduotis</h3><p class="note">Vienai ar kelioms dienoms iš eilės (pvz. 5 ar 20). Taškai pridedami prie 30, o pilnai dienai ją irgi reikia atlikti. Pastovias užduotis kurkite skiltyje „Nustatymai“.</p>'+
+  h+='<div class="xadd"><h3 style="margin-top:6px">➕ Papildoma užduotis</h3><p class="note">Vienai dienai, kelioms dienoms iš eilės (pvz. 5 ar 20) arba neribotam laikui. Taškai pridedami prie 30, o pilnai dienai ją irgi reikia atlikti. Pastovias užduotis kurkite skiltyje „Nustatymai“.</p>'+
     '<div class="add" style="margin-top:8px"><input type="text" id="x-title" placeholder="Pvz. Išnešti šiukšles" maxlength="60" autocomplete="off"><input type="number" id="x-pts" value="3" min="1" max="30" aria-label="Taškai" style="width:72px;flex:none"></div>'+
-    '<div class="add" style="margin-top:8px"><label class="f" style="flex:1">Kiek dienų<input type="number" id="x-days" value="1" min="1" max="60"></label><label class="f" style="flex:1">Pradėti<select id="x-start"><option value="0">Šiandien</option><option value="1">Rytoj</option></select></label></div>'+
+    '<div class="add" style="margin-top:8px"><label class="f" style="flex:1">Kiek dienų<input type="number" id="x-days" value="1" min="1" max="365"></label><label class="f" style="flex:1">Pradėti<select id="x-start"><option value="0">Šiandien</option><option value="1">Rytoj</option></select></label></div>'+
+    '<label class="xforever"><input type="checkbox" id="x-forever"> <span>Neribotai: kasdien, kol ištrinsite</span></label>'+
     '<div class="add" style="margin-top:8px"><select id="x-part" aria-label="Dienos dalis">'+PARTS.map(x=>'<option value="'+x.id+'"'+(x.id===cp?' selected':'')+'>'+x.label+'</option>').join('')+'</select><button class="small-btn" data-act="x-add">Pridėti</button></div>'+
-    ((C.tempTasks||[]).filter(x=>x.to>=k).length?'<p class="note" style="margin-top:10px">Suplanuotos papildomos užduotys:</p>'+(C.tempTasks||[]).filter(x=>x.to>=k).map(x=>'<div class="ptask"><span style="font-size:22px">⭐</span><span class="t">'+esc(x.title)+'<small>+'+x.pts+' · '+x.from.slice(5)+' – '+x.to.slice(5)+' ('+(daysBetween(x.from,x.to)+1)+' d.)</small></span><button class="toggle" data-act="x-del" data-id="'+esc(x.id)+'">Ištrinti</button></div>').join(''):'')+'</div>'}
+    ((C.tempTasks||[]).filter(x=>x.to>=k).length?'<p class="note" style="margin-top:10px">Suplanuotos papildomos užduotys:</p>'+(C.tempTasks||[]).filter(x=>x.to>=k).map(x=>'<div class="ptask"><span style="font-size:22px">⭐</span><span class="t">'+esc(x.title)+'<small>+'+x.pts+' · '+(x.to===FOREVER?'nuo '+x.from.slice(5)+', neribotai':x.from.slice(5)+' – '+x.to.slice(5)+' ('+(daysBetween(x.from,x.to)+1)+' d.)')+'</small></span><button class="toggle" data-act="x-del" data-id="'+esc(x.id)+'">Ištrinti</button></div>').join(''):'')+'</div>'}
   h+='</div>';
   const pls=schoolLessons(d);
   const prow=(t,cls,st)=>'<div class="ptask"><span class="t">'+t+'</span><span class="'+cls+'">'+st+'</span></div>';
@@ -1040,14 +1045,14 @@ document.addEventListener('change',e=>{if(e.target.classList&&e.target.classList
 async function addTemp(){
   const ti=document.getElementById('x-title'),title=(ti.value||'').trim().slice(0,60);if(!title){ti.focus();return}
   const pts=Math.min(30,Math.max(1,parseInt(document.getElementById('x-pts').value,10)||1)),part=document.getElementById('x-part').value||'diena';
-  const n=Math.min(60,Math.max(1,parseInt(document.getElementById('x-days').value,10)||1)),st=+document.getElementById('x-start').value||0;
-  const from=keyOf(addDays(today(),st)),to=keyOf(addDays(today(),st+n-1)),k=keyOf(today());
+  const ever=document.getElementById('x-forever').checked,n=Math.min(365,Math.max(1,parseInt(document.getElementById('x-days').value,10)||1)),st=+document.getElementById('x-start').value||0;
+  const from=keyOf(addDays(today(),st)),to=ever?FOREVER:keyOf(addDays(today(),st+n-1)),k=keyOf(today());
   const q=JSON.parse(JSON.stringify(C));q.tempTasks=(q.tempTasks||[]).filter(x=>x.to>=keyOf(addDays(today(),-60)));
   q.tempTasks.push({id:'x'+Date.now().toString(36),title,pts,part,from,to});
   try{await rpc('tl_save_config',{p_key:KEY,p_config:q})}catch(e){toast('Nepavyko išsaugoti: '+e.message);return}
   C=q;cacheSave();
-  saveDay(k,'➕ Papildoma užduotis: '+title+' (+'+pts+')'+(n>1?', '+n+' d. ('+from.slice(5)+' – '+to.slice(5)+')':(st?', rytoj':', šiandien')));
-  toast(n>1?'Užduotis pridėta '+n+' dienoms':'Užduotis pridėta');render();
+  saveDay(k,'➕ Papildoma užduotis: '+title+' (+'+pts+')'+(ever?', neribotam laikui'+(st?', nuo rytojaus':''):n>1?', '+n+' d. ('+from.slice(5)+' – '+to.slice(5)+')':(st?', rytoj':', šiandien')));
+  toast(ever?'Užduotis pridėta neribotam laikui':n>1?'Užduotis pridėta '+n+' dienoms':'Užduotis pridėta');render();
 }
 async function delTemp(el){
   const id=el.dataset.id,k=keyOf(today()),r=rec(k,true);
@@ -1069,6 +1074,7 @@ document.addEventListener('input',e=>{
   else if(el.dataset.ti){const t=draft.tasks[+el.dataset.ti];t[el.dataset.f]=el.value;markDirty();if(el.dataset.f==='pts')refreshSums()}
 });
 document.addEventListener('change',e=>{const el=e.target;if(draft&&el.dataset.ti&&el.dataset.f==='type'){draft.tasks[+el.dataset.ti].type=el.value;markDirty();renderParent()}});
+document.addEventListener('change',e=>{if(e.target.id==='x-forever'){const n=document.getElementById('x-days');n.disabled=e.target.checked}});
 function refreshSums(){const box=document.querySelector('.sums');if(!box||!draft)return;box.innerHTML=WEEK_ORDER.map(dw=>{const s=draft.tasks.filter(t=>t.type==='train'?!!(draft.training||{})[(dw+1)%7]:(t.days||[]).includes(dw)).reduce((a,t)=>a+(parseInt(t.pts,10)||0),0);return '<span class="'+(s===(parseInt(draft.dailyMax,10)||0)?'':'bad')+'">'+DAY_SHORT[dw]+' '+s+'</span>'}).join('')}
 
 /* ---------- boot ---------- */
@@ -1083,6 +1089,7 @@ function renderForce(){if(ROLE==='parent'&&tab==='set'){renderParent();return}re
 function formBusy(){
   const a=document.activeElement;
   if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)&&a.closest('#app'))return true;
+  const fv=document.getElementById('x-forever');if(fv&&fv.checked)return true;
   return ['x-title','tg-token'].some(id=>{const el=document.getElementById(id);return el&&el.value.trim()});
 }
 async function refresh(){
