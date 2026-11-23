@@ -438,13 +438,15 @@ function summarize(k){
   let sum=0,exSum=0,exMax=0;const missing=[];
   const dp=dayPts(d);base.forEach(t=>{if(r.done[t.id])sum+=(dp[t.id]||0);else missing.push(t.title)});
   ex.forEach(t=>{exMax+=(+t.pts||0);if(r.done[t.id])exSum+=(+t.pts||0);else missing.push(t.title)});
-  const bmax=+C.dailyMax||30,max=bmax+exMax,earned=Math.min(sum,bmax)+exSum,allDone=ts.length>0&&missing.length===0;
+  const jr=journalCount(r),bmax=+C.dailyMax||30,max=bmax+exMax+3,earned=Math.min(sum,bmax)+exSum+jr,allDone=ts.length>0&&missing.length===0;
   let sat=0,sun=0,satDays=0;
   if(dow===6){satDays=satWindowCount(d).c;sat=satDays*(+C.satBonusPerDay||0)}
   if(dow===0){const hwT=ts.find(t=>t.type==='hw');if(hwT&&r.done[hwT.id]){const n=hwItems(r,d).filter(h=>h.done).length;sun=Math.max(1,n)*(+C.sunHwBonus||0)}}
   const pen=penaltyFor(d);
-  const screen=Math.max(0,earned+sat+sun-pen.amount);
-  return{ts,sum,earned,max,allDone,missing,sat,sun,satDays,pen,screen};
+  // all points of the day together are worth bmax minutes
+  const mins=max?Math.round(earned*bmax/max):0;
+  const screen=Math.max(0,mins+sat+sun-pen.amount);
+  return{ts,sum,earned,max,allDone,missing,sat,sun,satDays,pen,screen,jr,mins,bmax};
 }
 function stamp(k){
   const r=rec(k,true),s=summarize(k);
@@ -565,12 +567,13 @@ function trainingText(d){
 function boardHTML(s,showSegs){
   const segs=s.ts.map(t=>'<span class="seg'+(rec(keyOf(today())).done[t.id]?' on':'')+'" style="flex-grow:'+(P(t)||1)+'"></span>').join('');
   const chips=[];
+  if(s.jr)chips.push('<span class="chip plus">Sėkmės +'+s.jr+'</span>');
   if(s.sat)chips.push('<span class="chip plus">Savaitės premija +'+s.sat+' min</span>');
   if(s.sun)chips.push('<span class="chip plus">Už namų darbus +'+s.sun+' min</span>');
   if(s.pen.amount)chips.push('<span class="chip minus">Bauda −'+s.pen.amount+' min</span>');
   return '<section class="board" aria-label="Taškų lenta">'+
     '<div class="board-row"><div><div class="lbl">Taškai šiandien</div><div class="score"><span class="led" id="score">'+s.earned+'</span><span class="of">/'+s.max+'</span></div></div>'+
-    '<div class="screen"><div class="lbl">Ekrano laikas</div><div class="led">'+s.screen+'<span style="font-size:18px"> min</span></div></div></div>'+
+    '<div class="screen"><div class="lbl">Ekrano laikas</div><div class="led">'+s.screen+'<span style="font-size:18px"> min</span></div>'+(s.max!==s.bmax?'<small>'+taskai(s.max)+' = '+s.bmax+' min</small>':'')+'</div></div>'+
     (showSegs&&s.ts.length?'<div class="segs" aria-hidden="true">'+segs+'</div>':'')+
     (s.allDone?'<div class="allwin">Visos užduotys atliktos! 🏆</div>':'')+
     (chips.length?'<div class="chips">'+chips.join('')+'</div>':'')+
@@ -653,7 +656,8 @@ const newId=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6).r
 const itemsOf=kind=>Object.keys(I).filter(id=>I[id].kind===kind).map(id=>Object.assign({id},I[id].data)).sort((a,b)=>a.at-b.at);
 const balance=()=>itemsOf('money').reduce((s,x)=>s+(+x.amt||0),0);
 const journalOf=r=>[0,1,2].map(i=>String((r.journal||[])[i]||''));
-const journalCount=r=>journalOf(r).filter(x=>x.trim()).length;
+// counts different entries of at least 3 letters; each one is worth 1 point
+const journalCount=r=>new Set(journalOf(r).map(x=>x.trim().toLowerCase()).filter(x=>x.length>=3)).size;
 function journalPastHTML(d,from,n){
   let h='';
   for(let i=from;i<from+n;i++){const x=addDays(d,-i),day=D[keyOf(x)];if(!day)continue;const j=journalOf(day).filter(t=>t.trim());
@@ -672,7 +676,7 @@ function quickHTML(r){
 function mySectionsHTML(r){
   const n=journalCount(r),ds=itemsOf('dream'),bal=balance(),ms=itemsOf('money');
   let h='<section class="part" id="zurnalas"><h2>📓 Sėkmės žurnalas <span>'+n+'/3</span></h2><button class="jcard'+(n===3?' done':'')+'" data-act="my" data-s="@journal">'+
-    (n?'<ol>'+journalOf(r).filter(t=>t.trim()).map(t=>'<li>'+esc(t)+'</li>').join('')+'</ol><span class="jl">'+(n===3?'Visos trys įrašytos ✓':'Įrašyk dar '+(3-n))+'</span>':'<b>Ką šiandien padarei gerai?</b><span class="jl">Įrašyk tris dalykus</span>')+'</button></section>';
+    (n?'<ol>'+journalOf(r).filter(t=>t.trim()).map(t=>'<li>'+esc(t)+'</li>').join('')+'</ol><span class="jl">'+(n===3?'Visos trys įrašytos ✓ +3':'+'+n+' · įrašyk dar '+(3-n))+'</span>':'<b>Ką šiandien padarei gerai?</b><span class="jl">Įrašyk tris dalykus. Už kiekvieną +1 taškas</span>')+'</button></section>';
   h+='<section class="part" id="pinigai"><h2>💰 Mano pinigai</h2><div class="money"><span class="ml">Jau turiu</span><span class="mv">'+eur(bal)+'</span>'+
     (ms.length?'<div class="mbtns"><button class="mb plus" data-act="my" data-s="@money:plus" aria-label="Gavau pinigų">+<small>Gavau</small></button><button class="mb minus" data-act="my" data-s="@money:minus" aria-label="Išleidau pinigų">−<small>Išleidau</small></button></div>'
       :'<button class="big" data-act="my" data-s="@money:set">Įrašyti, kiek turiu</button>')+
@@ -691,7 +695,7 @@ function renderMySheet(el){
     const j=journalOf(r),ph=['Pvz. padėjau draugui','Pvz. pats susikroviau kuprinę','Pvz. gerai žaidžiau treniruotėje'];
     b=head('📓','Sėkmės žurnalas')+'<div class="step">Trys dalykai, kuriuos šiandien atlikau gerai</div>'+
       j.map((t,i)=>'<label class="jrow"><span>'+(i+1)+'</span><input type="text" class="j-in" data-i="'+i+'" value="'+esc(t)+'" placeholder="'+ph[i]+'" maxlength="140" autocomplete="off"></label>').join('')+
-      '<button class="big" data-act="j-save">Išsaugoti</button><p class="note">Tavo sėkmes gali perskaityti ir tėvai.</p>';
+      '<button class="big" data-act="j-save">Išsaugoti</button><p class="note">Už kiekvieną skirtingą sėkmę +1 taškas. Tavo sėkmes gali perskaityti ir tėvai.</p>';
     const past=journalPastHTML(d,1,7);if(past)b+='<div class="step">Ankstesnės sėkmės</div>'+past;
   }else if(kind==='dream'){
     const x=arg==='new'?null:(I[arg]&&I[arg].data);if(arg!=='new'&&!x){closeSheet();return}
@@ -715,7 +719,7 @@ function saveJournal(){
 }
 let jDay=null,jStart=0; // day and filled lines when the journal was opened
 function mySave(a,el){
-  if(a==='j-save'){const was=jStart;saveJournal();const n=journalCount(rec(jDay||keyOf(today())));closeSheet();render();if(n===3&&was<3){ding(true);toast('Trys sėkmės įrašytos! 🌟')}else toast('Išsaugota');return}
+  if(a==='j-save'){const was=jStart;saveJournal();const n=journalCount(rec(jDay||keyOf(today())));closeSheet();render();if(n>was){fly('+'+(n-was));ding(n===3);toast((n===3?'Trys sėkmės įrašytos! 🌟 +':'Šaunuolis! +')+taskai(n-was))}else toast('Išsaugota');return}
   const [,arg]=sheetFor.slice(1).split(':');
   if(a==='d-del'){if(!el.dataset.armed){el.dataset.armed='1';el.textContent='Tikrai ištrinti?';return}saveItem(arg,'dream',null);closeSheet();render();toast('Svajonė ištrinta');return}
   const amt=parseMoney(document.getElementById('my-amt').value);
@@ -860,11 +864,11 @@ function parentToday(d,k){
   h+=weekHTML(d);
   const pn=penaltyFor(d);
   h+='<div class="panel"><h3>'+esc(name())+' šiandien</h3>';
-  h+='<p>Taškai '+s.earned+'/'+s.max+(s.sat?' · savaitės premija +'+s.sat:'')+(s.sun?' · ND premija +'+s.sun:'')+(pn.amount?' · bauda −'+pn.amount:'')+' = <b>'+s.screen+' min</b> ekrano laiko.</p>';
+  h+='<p>Taškai '+s.earned+'/'+s.max+(s.jr?' (iš jų '+s.jr+' už sėkmių žurnalą)':'')+' = '+s.mins+' min'+(s.sat?' · savaitės premija +'+s.sat:'')+(s.sun?' · ND premija +'+s.sun:'')+(pn.amount?' · bauda −'+pn.amount:'')+'. Ekrano laikas: <b>'+s.screen+' min</b>.</p>';
   if(!s.allDone)h+='<p class="note">Jei šiandien liks neatliktų užduočių, rytoj bauda bus −'+pn.next+' min.</p>';
   h+=s.ts.map(t=>{const dn=r.done[t.id];return '<div class="ptask"><span style="font-size:22px">'+esc(t.icon)+'</span><span class="t">'+esc(t.title)+'<small>+'+P(t,d)+(dn?' · atlikta '+new Date(dn).toLocaleTimeString('lt-LT',{hour:'2-digit',minute:'2-digit'}):'')+'</small></span><button class="toggle'+(dn?' on':'')+'" data-act="p-toggle" data-id="'+t.id+'">'+(dn?'Atlikta ✓':'Neatlikta')+'</button>'+(t.extra?'<button class="del" data-act="x-del" data-id="'+t.id+'" aria-label="Ištrinti užduotį" style="border:0;background:transparent;font-size:20px;color:var(--ink-soft);width:32px;height:36px">×</button>':'')+'</div>'}).join('');
   {const cp=PARTS[curPart()].id;
-  h+='<div class="xadd"><h3 style="margin-top:6px">➕ Papildoma užduotis</h3><p class="note">Vienai dienai, kelioms dienoms iš eilės (pvz. 5 ar 20) arba neribotam laikui. Taškai pridedami prie 30, o pilnai dienai ją irgi reikia atlikti. Pastovias užduotis kurkite skiltyje „Nustatymai“.</p>'+
+  h+='<div class="xadd"><h3 style="margin-top:6px">➕ Papildoma užduotis</h3><p class="note">Vienai dienai, kelioms dienoms iš eilės (pvz. 5 ar 20) arba neribotam laikui. Jos taškai pridedami prie dienos taškų, bet visi kartu vis tiek verti '+(+C.dailyMax||30)+' min. Pilnai dienai ją irgi reikia atlikti. Pastovias užduotis kurkite skiltyje „Nustatymai“.</p>'+
     '<div class="add" style="margin-top:8px"><input type="text" id="x-title" placeholder="Pvz. Išnešti šiukšles" maxlength="60" autocomplete="off"><input type="number" id="x-pts" value="3" min="1" max="30" aria-label="Taškai" style="width:72px;flex:none"></div>'+
     '<div class="add" style="margin-top:8px"><label class="f" style="flex:1">Kiek dienų<input type="number" id="x-days" value="1" min="1" max="365"></label><label class="f" style="flex:1">Pradėti<select id="x-start"><option value="0">Šiandien</option><option value="1">Rytoj</option></select></label></div>'+
     '<label class="xforever"><input type="checkbox" id="x-forever"> <span>Neribotai: kasdien, kol ištrinsite</span></label>'+
