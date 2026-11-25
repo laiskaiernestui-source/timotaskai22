@@ -83,6 +83,10 @@ h1,h2,h3{font-family:var(--f-display);font-weight:800;line-height:1.1;margin:0;t
 .chip.minus{background:#45201d;color:#ffaaa2}
 .allwin{font-family:var(--f-display);font-size:20px;color:var(--led);text-align:center}
 
+.medals{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ms{display:flex;gap:4px;font-size:26px;line-height:1}.ms i{font-style:normal;opacity:.22;filter:grayscale(1)}.ms i.on{opacity:1;filter:none}
+.mt{font-weight:800;font-size:15px;color:var(--led)}
+
 /* Week */
 .week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
 .wd{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;font-weight:800;color:var(--ink-soft)}
@@ -233,6 +237,11 @@ textarea{min-height:96px;resize:vertical}
 #confetti{position:fixed;inset:0;pointer-events:none;z-index:65}
 
 /* Parent */
+.daynav{display:flex;align-items:center;justify-content:space-between;gap:10px;font-weight:900;font-size:17px}
+.daynav button{border:0;background:var(--surface);box-shadow:var(--shadow);border-radius:12px;min-width:52px;min-height:44px;font-size:24px;font-weight:900}
+button:disabled{opacity:.35}
+.corerow{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:800;color:var(--ink-soft)}
+.corerow .days button.on{background:var(--gold);border-color:var(--gold);color:#fff}
 .tabs{display:flex;gap:6px;background:var(--surface-2);border-radius:14px;padding:4px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
 .tabs button{flex:1;border:0;background:transparent;border-radius:10px;padding:10px 6px;font-weight:800;font-size:14px;color:var(--ink-soft)}
 .tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
@@ -310,7 +319,7 @@ const taskai=n=>n+' '+plural(n,'taškas','taškai','taškų');
 /* ---------- defaults ---------- */
 function defaultConfig(){return{
   v:1, childName:'', childCall:'',
-  dailyMax:30, satBonusPerDay:5, sunHwBonus:3, penaltyStep:5, penaltyMax:30,
+  dailyMax:30, satBonusPerDay:5, satBonusSilver:3, sunHwBonus:3,
   startDate:keyOf(today()),
   training:{'1':'15:30','3':'15:30','4':'15:30','6':'10:30'},
   ttExample:true,
@@ -336,21 +345,21 @@ function defaultConfig(){return{
   bagExtras:['Penalas','Gertuvė su vandeniu','Priešpiečių dėžutė','Padaryti namų darbai'],
   tasks:[
     {id:'t1',icon:'👕',title:'Apsirengti ir papusryčiauti',pts:3,part:'rytas',days:[1,2,3,4,5],type:'simple',timer:0},
-    {id:'t16',icon:'🛏️',title:'Pasikloti lovą',pts:3,part:'rytas',days:[0,5,6],type:'simple',timer:0},
+    {id:'t16',icon:'🛏️',title:'Pasikloti lovą',pts:3,part:'rytas',days:[0,5,6],type:'simple',timer:0,core:[5,6]},
     {id:'t2',icon:'🪥',title:'Išsivalyti dantis ryte',pts:2,part:'rytas',days:[0,1,2,3,4,5,6],type:'simple',timer:0},
     {id:'t3',icon:'🎒',title:'Iškrauti kuprinę ir priešpiečių dėžutę',pts:2,part:'diena',days:[1,2,3,4,5],type:'simple',timer:0},
     {id:'t4',icon:'🏀',title:'Susiruošti krepšinio krepšį',pts:3,part:'diena',days:[],type:'train',timer:0},
-    {id:'t5',icon:'📖',title:'Paskaityti knygą 15 min',pts:3,part:'diena',days:[2,5],type:'simple',timer:15},
-    {id:'t12',icon:'🧸',title:'Surinkti daiktus nuo grindų ir sudėti į vietas',pts:6,part:'diena',days:[5,6],type:'simple',timer:10},
-    {id:'t17',icon:'🧽',title:'Nušluostyti dulkes savo kambaryje',pts:4,part:'diena',days:[6],type:'simple',timer:10},
+    {id:'t5',icon:'📖',title:'Paskaityti knygą 15 min',pts:3,part:'diena',days:[2,5],type:'simple',timer:15,core:[5]},
+    {id:'t12',icon:'🧸',title:'Surinkti daiktus nuo grindų ir sudėti į vietas',pts:6,part:'diena',days:[5,6],type:'simple',timer:10,core:[5,6]},
+    {id:'t17',icon:'🧽',title:'Nušluostyti dulkes savo kambaryje',pts:4,part:'diena',days:[6],type:'simple',timer:10,core:[6]},
     {id:'t18',icon:'📚',title:'Sutvarkyti knygų lentyną ir stalčių',pts:3,part:'diena',days:[6],type:'simple',timer:0},
-    {id:'t6',icon:'🔎',title:'Patikrinti namų darbus',pts:4,part:'vakaras',days:[0,1,2,3,4],type:'check',timer:0},
-    {id:'t7',icon:'✏️',title:'Padaryti namų darbus',pts:8,part:'vakaras',days:[0,1,2,3,4],type:'hw',timer:20},
-    {id:'t8',icon:'🎒',title:'Susikrauti kuprinę rytojui',pts:4,part:'vakaras',days:[0,1,2,3,4],type:'bag',timer:0},
-    {id:'t9',icon:'🗂️',title:'Susitvarkyti rašomąjį stalą',pts:2,part:'vakaras',days:[1,2,3,4,5],type:'simple',timer:0},
+    {id:'t6',icon:'🔎',title:'Patikrinti namų darbus',pts:4,part:'vakaras',days:[0,1,2,3,4],type:'check',timer:0,core:[0,1,2,3,4]},
+    {id:'t7',icon:'✏️',title:'Padaryti namų darbus',pts:8,part:'vakaras',days:[0,1,2,3,4],type:'hw',timer:20,core:[0,1,2,3,4]},
+    {id:'t8',icon:'🎒',title:'Susikrauti kuprinę rytojui',pts:4,part:'vakaras',days:[0,1,2,3,4],type:'bag',timer:0,core:[0,1,2,3,4]},
+    {id:'t9',icon:'🗂️',title:'Susitvarkyti rašomąjį stalą',pts:2,part:'vakaras',days:[1,2,3,4,5],type:'simple',timer:0,core:[1,2,3,4]},
     {id:'t13',icon:'🧺',title:'Nešvarius drabužius į skalbinių krepšį',pts:3,part:'vakaras',days:[0,5,6],type:'simple',timer:0},
-    {id:'t14',icon:'🍽️',title:'Padėti padengti stalą vakarienei',pts:4,part:'vakaras',days:[0,5,6],type:'simple',timer:0},
-    {id:'t10',icon:'🌙',title:'Išsivalyti dantis vakare',pts:2,part:'vakaras',days:[0,1,2,3,4,5,6],type:'simple',timer:0}
+    {id:'t14',icon:'🍽️',title:'Padėti padengti stalą vakarienei',pts:4,part:'vakaras',days:[0,5,6],type:'simple',timer:0,core:[0,5,6]},
+    {id:'t10',icon:'🌙',title:'Išsivalyti dantis vakare',pts:2,part:'vakaras',days:[0,1,2,3,4,5,6],type:'simple',timer:0,core:[0,1,2,3,4,5,6]}
   ]
 }}
 
@@ -373,6 +382,7 @@ let pendI={};         // items waiting to sync: id -> {kind,data|null}
 let itemVer=0;
 let syncState='wait';
 let tab='today';
+let pOff=0;           // parent view: 0 today, 1 yesterday…
 let draft=null;       // parent settings working copy
 let dirty=false;
 let timer=null;       // {id,end,min}
@@ -404,20 +414,24 @@ function tasksFor(d){
   return C.tasks.map((t,i)=>({t,i})).filter(({t})=>t.type==='train'?!!trainingAt(nextDow(dow)):(t.days||[]).includes(dow))
     .sort((a,b)=>partIdx(partOf(a.t,dow))-partIdx(partOf(b.t,dow))||a.i-b.i).map(x=>x.t);
 }
-const isPerfect=k=>!!(D[k]&&D[k].allDone===true);
-function penaltyFor(d){
-  let n=0;
-  for(let i=1;i<=40;i++){const k=keyOf(addDays(d,-i));if(k<(C.startDate||'9999'))break;if(isPerfect(k))break;n++}
-  const step=+C.penaltyStep||0,max=+C.penaltyMax||0;
-  return{n,amount:Math.min(step*n,max),next:Math.min(step*(n+1),max)};
+/* Day levels: 1 bronze (40 % of key tasks), 2 silver (70 %), 3 gold (all). No penalties. */
+const MED=['','🥉','🥈','🥇'],LVL=['','Bronzinė diena','Sidabrinė diena','Auksinė diena'];
+const isCore=(t,d)=>Array.isArray(t.core)&&t.core.includes(d.getDay());
+function coreTasks(d){const ts=tasksFor(d),c=ts.filter(t=>isCore(t,d));return c.length?c:ts}
+function levelFor(done,total){if(!total||!done)return 0;const x=done/total;return x>=1?3:x>=.7?2:x>=.4?1:0}
+const satSilver=()=>C.satBonusSilver==null?3:+C.satBonusSilver||0;
+// -1 = neutral day: nothing marked, or parents said it does not count
+function dayLevel(k){
+  const r=D[k];if(!r||r.skip||!Object.keys(r.done||{}).length)return -1;
+  if(k===keyOf(today()))return summarize(k).level;
+  if(typeof r.level==='number')return r.level;
+  return r.allDone?3:levelFor(Math.min(+r.earned||0,(+r.max||30)-1),+r.max||30); // days saved before levels existed
 }
 function satWindowCount(d){
-  // Saturday S counts perfect days in [S-7, S-1]
-  const dow=d.getDay();
-  if(dow===6){let c=0;for(let i=1;i<=7;i++){const k=keyOf(addDays(d,-i));if(k>=C.startDate&&isPerfect(k))c++}return{c,final:true}}
-  const sat=addDays(d,6-dow);let c=0;
-  for(let x=addDays(sat,-7);x<=d;x=addDays(x,1)){const k=keyOf(x);if(k>=C.startDate&&isPerfect(k))c++}
-  return{c,final:false};
+  // Saturday S counts days in [S-7, S-1]
+  const dow=d.getDay(),end=dow===6?addDays(d,-1):d,from=addDays(dow===6?d:addDays(d,6-dow),-7);let g=0,v=0;
+  for(let x=from;x<=end;x=addDays(x,1)){const k=keyOf(x);if(k<(C.startDate||''))continue;const l=dayLevel(k);if(l===3)g++;else if(l===2)v++}
+  return{g,v,min:g*(+C.satBonusPerDay||0)+v*satSilver()};
 }
 function dayPts(d){
   const ts=tasksFor(d),M=+C.dailyMax||30,W=ts.reduce((a,t)=>a+(+t.pts||0),0),o={};
@@ -436,21 +450,25 @@ function findTask(id,k){return C.tasks.find(x=>x.id===id)||(()=>{const kk=k||key
 function summarize(k){
   const d=fromKey(k),r=rec(k),base=tasksFor(d),ex=extrasOf(r,k),ts=base.concat(ex),dow=d.getDay();
   let sum=0,exSum=0,exMax=0;const missing=[];
-  const dp=dayPts(d);base.forEach(t=>{if(r.done[t.id])sum+=(dp[t.id]||0);else missing.push(t.title)});
-  ex.forEach(t=>{exMax+=(+t.pts||0);if(r.done[t.id])exSum+=(+t.pts||0);else missing.push(t.title)});
-  const jr=journalCount(r),bmax=+C.dailyMax||30,max=bmax+exMax+3,earned=Math.min(sum,bmax)+exSum+jr,allDone=ts.length>0&&missing.length===0;
-  let sat=0,sun=0,satDays=0;
-  if(dow===6){satDays=satWindowCount(d).c;sat=satDays*(+C.satBonusPerDay||0)}
+  const dp=dayPts(d);base.forEach(t=>{if(r.done[t.id])sum+=(dp[t.id]||0)});
+  ex.forEach(t=>{exMax+=(+t.pts||0);if(r.done[t.id])exSum+=(+t.pts||0)});
+  const jr=journalCount(r),bmax=+C.dailyMax||30,max=bmax+exMax+3,earned=Math.min(sum,bmax)+exSum+jr;
+  const ct=coreTasks(d),cd=ct.filter(t=>r.done[t.id]).length,level=levelFor(cd,ct.length),allDone=level===3,everything=ts.length>0&&ts.every(t=>r.done[t.id]);
+  ct.forEach(t=>{if(!r.done[t.id])missing.push(t.title)});
+  const doneT=ct.concat(ts.filter(t=>!ct.includes(t))).filter(t=>r.done[t.id]).map(t=>t.title);
+  let sat=0,sun=0;
+  if(dow===6)sat=satWindowCount(d).min;
   if(dow===0){const hwT=ts.find(t=>t.type==='hw');if(hwT&&r.done[hwT.id]){const n=hwItems(r,d).filter(h=>h.done).length;sun=Math.max(1,n)*(+C.sunHwBonus||0)}}
-  const pen=penaltyFor(d);
   // all points of the day together are worth bmax minutes
   const mins=max?Math.round(earned*bmax/max):0;
-  const screen=Math.max(0,mins+sat+sun-pen.amount);
-  return{ts,sum,earned,max,allDone,missing,sat,sun,satDays,pen,screen,jr,mins,bmax};
+  const screen=mins+sat+sun;
+  return{k,ts,sum,earned,max,allDone,everything,level,coreDone:cd,coreTotal:ct.length,missing,doneT,sat,sun,screen,jr,mins,bmax};
 }
 function stamp(k){
   const r=rec(k,true),s=summarize(k);
-  Object.assign(r,{earned:s.earned,max:s.max,allDone:s.allDone,missing:s.missing,screen:s.screen,bonus:s.sat+s.sun,penalty:s.pen.amount,nextPenalty:s.allDone?0:s.pen.next});
+  if(k<keyOf(today())&&typeof r.level!=='number')r.lvlMin=Math.max(0,dayLevel(k)); // day from before levels: never lose its medal
+  s.level=Math.max(s.level,r.lvlMin||0);
+  Object.assign(r,{earned:s.earned,max:s.max,allDone:s.allDone,level:s.level,coreDone:s.coreDone,coreTotal:s.coreTotal,missing:s.missing,doneT:s.doneT,screen:s.screen,bonus:s.sat+s.sun,penalty:0,nextPenalty:0});
   return s;
 }
 
@@ -541,7 +559,8 @@ function bagGroups(d){
 function curPart(){const h=new Date().getHours();return h<12?0:h<17?1:2}
 function nextTask(ts,r,dow){
   const undone=ts.filter(t=>!r.done[t.id]);if(!undone.length)return null;
-  const cp=curPart();return undone.find(t=>partIdx(partOf(t,dow))>=cp)||undone[0];
+  const cp=curPart(),core=t=>Array.isArray(t.core)&&t.core.includes(dow);
+  return undone.find(t=>core(t)&&partIdx(partOf(t,dow))<=cp)||undone.find(t=>partIdx(partOf(t,dow))>=cp)||undone[0];
 }
 function sub(t,r,d){
   const dow=d.getDay();
@@ -564,18 +583,22 @@ function trainingText(d){
 }
 
 /* ---------- render: child ---------- */
+function levelText(s){
+  if(s.level===3)return s.everything?'Padaryta absoliučiai viskas! 🏆':'Auksinė diena! 🏆';
+  const need=(s.level===0?Math.ceil(.4*s.coreTotal):s.level===1?Math.ceil(.7*s.coreTotal):s.coreTotal)-s.coreDone;
+  return 'Iki '+MED[s.level+1]+' liko '+need+' '+plural(need,'svarbiausia užduotis','svarbiausios užduotys','svarbiausių užduočių');
+}
 function boardHTML(s,showSegs){
-  const segs=s.ts.map(t=>'<span class="seg'+(rec(keyOf(today())).done[t.id]?' on':'')+'" style="flex-grow:'+(P(t)||1)+'"></span>').join('');
+  const segs=s.ts.map(t=>'<span class="seg'+(rec(s.k).done[t.id]?' on':'')+'" style="flex-grow:'+(P(t,fromKey(s.k))||1)+'"></span>').join('');
   const chips=[];
   if(s.jr)chips.push('<span class="chip plus">Sėkmės +'+s.jr+'</span>');
   if(s.sat)chips.push('<span class="chip plus">Savaitės premija +'+s.sat+' min</span>');
   if(s.sun)chips.push('<span class="chip plus">Už namų darbus +'+s.sun+' min</span>');
-  if(s.pen.amount)chips.push('<span class="chip minus">Bauda −'+s.pen.amount+' min</span>');
   return '<section class="board" aria-label="Taškų lenta">'+
-    '<div class="board-row"><div><div class="lbl">Taškai šiandien</div><div class="score"><span class="led" id="score">'+s.earned+'</span><span class="of">/'+s.max+'</span></div></div>'+
+    '<div class="board-row"><div><div class="lbl">'+(s.k===keyOf(today())?'Taškai šiandien':'Taškai')+'</div><div class="score"><span class="led" id="score">'+s.earned+'</span><span class="of">/'+s.max+'</span></div></div>'+
     '<div class="screen"><div class="lbl">Ekrano laikas</div><div class="led">'+s.screen+'<span style="font-size:18px"> min</span></div>'+(s.max!==s.bmax?'<small>'+taskai(s.max)+' = '+s.bmax+' min</small>':'')+'</div></div>'+
     (showSegs&&s.ts.length?'<div class="segs" aria-hidden="true">'+segs+'</div>':'')+
-    (s.allDone?'<div class="allwin">Visos užduotys atliktos! 🏆</div>':'')+
+    '<div class="medals"><span class="ms" aria-hidden="true">'+[1,2,3].map(l=>'<i class="'+(s.level>=l?'on':'')+'">'+MED[l]+'</i>').join('')+'</span><span class="mt">'+levelText(s)+'</span></div>'+
     (chips.length?'<div class="chips">'+chips.join('')+'</div>':'')+
   '</section>';
 }
@@ -583,8 +606,8 @@ function weekHTML(d){
   const mon=addDays(d,-((d.getDay()+6)%7));const tk=keyOf(today());
   return '<section class="week" aria-label="Savaitė">'+WEEK_ORDER.map((_,i)=>{
     const x=addDays(mon,i),k=keyOf(x);let cls='wd',sym='·';
-    if(isPerfect(k)){cls+=' star';sym='★'}
-    else if(k<tk&&k>=C.startDate){cls+=' miss';sym='✕'}
+    const l=k<=tk?dayLevel(k):-1;
+    if(l>0){cls+=' star';sym=MED[l]}else if(D[k]&&D[k].skip)sym='–';
     if(k===tk)cls+=' today';
     return '<div class="'+cls+'"><b>'+sym+'</b>'+DAY_SHORT[x.getDay()]+'</div>';
   }).join('')+'</section>';
@@ -598,12 +621,11 @@ function renderChild(){
   h+=quickHTML(r);
   // info cards
   const cards=[];
-  if(s.pen.amount)cards.push('<div class="card warn"><div class="ic">⚠️</div><div class="tx"><h3>Bauda −'+s.pen.amount+' min</h3><p>'+(s.pen.n===1?'Vakar ne visos užduotys buvo atliktos.':'Jau '+s.pen.n+' '+plural(s.pen.n,'diena','dienos','dienų')+' iš eilės ne visos užduotys atliktos.')+' Atlik šiandien viską, ir rytoj baudos nebus.</p></div></div>');
+  if(r.skip)cards.push('<div class="card"><div class="ic">🌤️</div><div class="tx"><h3>Ši diena neskaičiuojama</h3><p>Užduotis vis tiek gali daryti ir rinkti taškus.</p></div></div>');
   const tt=trainingText(d);
   if(tt)cards.push('<div class="card"><div class="ic">🏀</div><div class="tx"><h3>Krepšinis '+esc(trainingAt(dow))+'</h3><p>'+esc(tt)+'</p></div></div>');
   {const school=dow>=1&&dow<=5,ld=school?d:nextSchoolDay(d),ls=lessonsOf(ld);cards.push('<div class="card"><div class="ic">🏫</div><div class="tx"><h3>'+(school?'Šiandienos pamokos':(keyOf(ld)===keyOf(addDays(d,1))?'Rytojaus pamokos':DAY_LONG[ld.getDay()]+': pamokos'))+'</h3>'+(ls.length?'<ol class="lessons">'+ls.map(l=>'<li>'+esc(l)+'</li>').join('')+'</ol>':'<p>Tvarkaraštis dar neįvestas.</p>')+(C.ttExample?'<p class="note">Pavyzdinis tvarkaraštis. Tėvai jį pakeis.</p>':'')+'<button class="linkbtn" data-act="tt-scroll">📅 Visos savaitės tvarkaraštis</button></div></div>')}
-  if(dow===6)cards.push('<div class="card gold"><div class="ic">🎁</div><div class="tx"><h3>Šeštadienio premija +'+s.sat+' min</h3><p>'+s.satDays+' '+plural(s.satDays,'pilna diena','pilnos dienos','pilnų dienų')+' per savaitę × '+C.satBonusPerDay+' min.</p></div></div>');
-  else{const w=satWindowCount(d);cards.push('<div class="card gold"><div class="ic">🎁</div><div class="tx"><h3>Šeštadienį: +'+(w.c*C.satBonusPerDay)+' min</h3><p>Šią savaitę '+w.c+' '+plural(w.c,'pilna diena','pilnos dienos','pilnų dienų')+'. Kiekviena pilna diena prideda '+C.satBonusPerDay+' min.'+(dow===0?' Šiandien už kiekvieną padarytą namų darbą dar +'+C.sunHwBonus+' min.':'')+'</p></div></div>')}
+  {const w=satWindowCount(d),cnt='🥇 '+w.g+' · 🥈 '+w.v;cards.push('<div class="card gold"><div class="ic">🎁</div><div class="tx"><h3>'+(dow===6?'Šeštadienio premija +'+s.sat+' min':'Šeštadienį jau laukia +'+w.min+' min')+'</h3><p>'+cnt+'. Auksinė diena +'+C.satBonusPerDay+' min, sidabrinė +'+satSilver()+' min.'+(dow===0?' Šiandien už kiekvieną padarytą namų darbą dar +'+C.sunHwBonus+' min.':'')+'</p></div></div>')}
   h+='<section class="info">'+cards.join('')+'</section>';
   // focus
   const nt=nextTask(s.ts,r,dow);
@@ -616,13 +638,15 @@ function renderChild(){
       (nt.timer&&!(timer&&timer.id===nt.id)?'<button class="ghost" data-act="timer" data-id="'+nt.id+'">⏱ '+nt.timer+' min</button>':'')+'</div></section>';
   }
   // list
-  PARTS.forEach((p,pi)=>{
-    const items=s.ts.filter(t=>partOf(t,dow)===p.id);if(!items.length)return;
-    const dn=items.filter(t=>r.done[t.id]).length;
-    h+='<section class="part"><h2>'+p.label+' <span>'+dn+'/'+items.length+'</span></h2>'+items.map(t=>{
-      const done=!!r.done[t.id];const sb=sub(t,r,d);
-      return '<button class="task'+(done?' done':'')+(nt&&nt.id===t.id?' next':'')+'" data-act="task" data-id="'+t.id+'"><span class="ic">'+esc(t.icon)+'</span><span class="t">'+esc(t.title)+(sb?'<small>'+esc(sb)+'</small>':'')+'</span><span class="pts">+'+P(t)+'</span><span class="ck">✓</span></button>';
-    }).join('')+'</section>';
+  const row=t=>{
+    const done=!!r.done[t.id];const sb=sub(t,r,d);
+    return '<button class="task'+(done?' done':'')+(nt&&nt.id===t.id?' next':'')+'" data-act="task" data-id="'+t.id+'"><span class="ic">'+esc(t.icon)+'</span><span class="t">'+esc(t.title)+(sb?'<small>'+esc(sb)+'</small>':'')+'</span><span class="pts">+'+P(t)+'</span><span class="ck">✓</span></button>';
+  };
+  const coreL=s.ts.filter(t=>isCore(t,d));
+  if(coreL.length)h+='<section class="part"><h2>⭐ Svarbiausios <span>'+coreL.filter(t=>r.done[t.id]).length+'/'+coreL.length+'</span></h2>'+coreL.map(row).join('')+'</section>';
+  PARTS.forEach(p=>{
+    const items=s.ts.filter(t=>partOf(t,dow)===p.id&&!coreL.includes(t));if(!items.length)return;
+    h+='<section class="part"><h2>'+p.label+' <span>'+items.filter(t=>r.done[t.id]).length+'/'+items.length+(coreL.length?' · papildomi taškai':'')+'</span></h2>'+items.map(row).join('')+'</section>';
   });
   h+=mySectionsHTML(r);
   h+=timetableHTML(d);
@@ -808,19 +832,19 @@ function hwListHTML(r,tickable){
 /* ---------- actions ---------- */
 function markDone(id,extra){
   const k=keyOf(today()),r=rec(k,true),t=findTask(id,k);if(!t||r.done[id])return;
-  r.done[id]=Date.now();
   const before=summarize(k);
+  r.done[id]=Date.now();
   const s=stamp(k);
   let ev=null;
   if(ROLE==='child'){
-    ev='✅ '+name()+': '+t.title+' (+'+P(t)+')'+(extra?'\n'+extra:'')+'\nŠiandien '+s.earned+'/'+s.max+' taškų.';
-    if(s.allDone)ev+='\n🏆 Visos dienos užduotys atliktos! Ekrano laikas šiandien: '+s.screen+' min.';
+    ev='✅ '+name()+': '+t.title+' (+'+P(t)+')'+(extra?'\n'+extra:'')+'\nSvarbiausios '+s.coreDone+'/'+s.coreTotal+'. Šiandien '+s.earned+'/'+s.max+' taškų.';
+    if(s.level>before.level)ev+='\n'+MED[s.level]+' '+LVL[s.level]+'! Ekrano laikas: '+s.screen+' min.';
   }
   saveDay(k,ev);
   undoInfo={id,k};
-  fly('+'+P(t));ding(s.allDone);
-  if(s.allDone&&!before.allDone)confetti();
-  toast(s.allDone?'Visos užduotys atliktos! 🏆':'Šaunuolis! +'+P(t)+' '+plural(P(t),'taškas','taškai','taškų'),true);
+  const up=s.level>before.level;fly('+'+P(t));ding(up);
+  if((up&&s.level===3)||(s.everything&&!before.everything))confetti();
+  toast(up?MED[s.level]+' '+LVL[s.level]+'! +'+P(t):'Šaunuolis! +'+P(t)+' '+plural(P(t),'taškas','taškai','taškų'),true);
   if(timer&&timer.id===id)timer=null;
   render();
 }
@@ -851,7 +875,7 @@ function renderParent(){
   const d=today(),k=keyOf(d);
   let h='<header class="top"><div><h1>Tėvų skydelis</h1><p>'+fmtDate(d)+'</p></div><div class="sync" id="sync"><i></i> </div></header>';
   h+='<nav class="tabs" role="tablist">'+[['today','Šiandien'],['hist','Istorija'],['set','Nustatymai'],['tg','Pranešimai']].map(([id,l])=>'<button role="tab" aria-selected="'+(tab===id)+'" data-act="tab" data-tab="'+id+'">'+l+'</button>').join('')+'</nav>';
-  if(tab==='today')h+=parentToday(d,k);
+  if(tab==='today'){const pd=addDays(d,-pOff);h+=parentToday(pd,keyOf(pd))}
   if(tab==='hist')h+=parentHist(d);
   if(tab==='set')h+=parentSettings();
   if(tab==='tg')h+=parentTg();
@@ -860,15 +884,18 @@ function renderParent(){
 }
 function parentToday(d,k){
   const r=rec(k),s=summarize(k),dow=d.getDay();
-  let h=boardHTML(s,true);
+  let h='<div class="daynav"><button data-act="p-day" data-n="1" aria-label="Ankstesnė diena" '+(pOff>=7?'disabled':'')+'>‹</button><b>'+(pOff===0?'Šiandien':pOff===1?'Vakar, '+fmtShort(d):fmtShort(d))+'</b><button data-act="p-day" data-n="-1" aria-label="Vėlesnė diena" '+(pOff===0?'disabled':'')+'>›</button></div>';
+  h+=boardHTML(s,true);
   h+=weekHTML(d);
-  const pn=penaltyFor(d);
-  h+='<div class="panel"><h3>'+esc(name())+' šiandien</h3>';
-  h+='<p>Taškai '+s.earned+'/'+s.max+(s.jr?' (iš jų '+s.jr+' už sėkmių žurnalą)':'')+' = '+s.mins+' min'+(s.sat?' · savaitės premija +'+s.sat:'')+(s.sun?' · ND premija +'+s.sun:'')+(pn.amount?' · bauda −'+pn.amount:'')+'. Ekrano laikas: <b>'+s.screen+' min</b>.</p>';
-  if(!s.allDone)h+='<p class="note">Jei šiandien liks neatliktų užduočių, rytoj bauda bus −'+pn.next+' min.</p>';
-  h+=s.ts.map(t=>{const dn=r.done[t.id];return '<div class="ptask"><span style="font-size:22px">'+esc(t.icon)+'</span><span class="t">'+esc(t.title)+'<small>+'+P(t,d)+(dn?' · atlikta '+new Date(dn).toLocaleTimeString('lt-LT',{hour:'2-digit',minute:'2-digit'}):'')+'</small></span><button class="toggle'+(dn?' on':'')+'" data-act="p-toggle" data-id="'+t.id+'">'+(dn?'Atlikta ✓':'Neatlikta')+'</button>'+(t.extra?'<button class="del" data-act="x-del" data-id="'+t.id+'" aria-label="Ištrinti užduotį" style="border:0;background:transparent;font-size:20px;color:var(--ink-soft);width:32px;height:36px">×</button>':'')+'</div>'}).join('');
+  h+='<div class="panel"><h3>'+esc(name())+': '+(pOff===0?'šiandien':fmtShort(d))+'</h3>';
+  h+='<p>Taškai '+s.earned+'/'+s.max+(s.jr?' (iš jų '+s.jr+' už sėkmių žurnalą)':'')+' = '+s.mins+' min'+(s.sat?' · savaitės premija +'+s.sat:'')+(s.sun?' · ND premija +'+s.sun:'')+'. Ekrano laikas: <b>'+s.screen+' min</b>.</p>';
+  h+='<p>Svarbiausios: <b>'+s.coreDone+'/'+s.coreTotal+'</b>'+(s.level?' · '+MED[s.level]+' '+LVL[s.level]:'')+(r.skip?' · diena neskaičiuojama':'')+'</p>';
+  if(pOff)h+='<p class="note">Galite pažymėti už vaiką tai, ko jis negalėjo suvesti pats.</p>';
+  h+=s.ts.map(t=>{const dn=r.done[t.id];return '<div class="ptask"><span style="font-size:22px">'+esc(t.icon)+'</span><span class="t">'+(isCore(t,d)?'⭐ ':'')+esc(t.title)+'<small>+'+P(t,d)+(dn&&!pOff?' · atlikta '+new Date(dn).toLocaleTimeString('lt-LT',{hour:'2-digit',minute:'2-digit'}):'')+'</small></span><button class="toggle'+(dn?' on':'')+'" data-act="p-toggle" data-id="'+t.id+'">'+(dn?'Atlikta ✓':'Neatlikta')+'</button>'+(t.extra&&!pOff?'<button class="del" data-act="x-del" data-id="'+t.id+'" aria-label="Ištrinti užduotį" style="border:0;background:transparent;font-size:20px;color:var(--ink-soft);width:32px;height:36px">×</button>':'')+'</div>'}).join('');
+  h+='<button class="ghost" data-act="p-skip" style="min-height:48px">'+(r.skip?'Vėl skaičiuoti šią dieną':'Neskaičiuoti šios dienos (nebuvo prieigos)')+'</button>';
+  if(pOff)return h+'</div>';
   {const cp=PARTS[curPart()].id;
-  h+='<div class="xadd"><h3 style="margin-top:6px">➕ Papildoma užduotis</h3><p class="note">Vienai dienai, kelioms dienoms iš eilės (pvz. 5 ar 20) arba neribotam laikui. Jos taškai pridedami prie dienos taškų, bet visi kartu vis tiek verti '+(+C.dailyMax||30)+' min. Pilnai dienai ją irgi reikia atlikti. Pastovias užduotis kurkite skiltyje „Nustatymai“.</p>'+
+  h+='<div class="xadd"><h3 style="margin-top:6px">➕ Papildoma užduotis</h3><p class="note">Vienai dienai, kelioms dienoms iš eilės (pvz. 5 ar 20) arba neribotam laikui. Jos taškai pridedami prie dienos taškų, bet visi kartu vis tiek verti '+(+C.dailyMax||30)+' min. Dienos lygiui (🥉🥈🥇) ji nebūtina. Pastovias užduotis kurkite skiltyje „Nustatymai“.</p>'+
     '<div class="add" style="margin-top:8px"><input type="text" id="x-title" placeholder="Pvz. Išnešti šiukšles" maxlength="60" autocomplete="off"><input type="number" id="x-pts" value="3" min="1" max="30" aria-label="Taškai" style="width:72px;flex:none"></div>'+
     '<div class="add" style="margin-top:8px"><label class="f" style="flex:1">Kiek dienų<input type="number" id="x-days" value="1" min="1" max="365"></label><label class="f" style="flex:1">Pradėti<select id="x-start"><option value="0">Šiandien</option><option value="1">Rytoj</option></select></label></div>'+
     '<label class="xforever"><input type="checkbox" id="x-forever"> <span>Neribotai: kasdien, kol ištrinsite</span></label>'+
@@ -903,11 +930,10 @@ function parentHist(d){
     const r=D[k];
     const s=i===0?summarize(k):null;
     const e=s?s.earned:(r&&r.earned!=null?r.earned:0),mx=s?s.max:(r&&r.max)||C.dailyMax;
-    const bon=s?(s.sat+s.sun):(r&&r.bonus)||0,pen=s?s.pen.amount:(r&&r.penalty)||0,scr=s?s.screen:(r&&r.screen!=null?r.screen:Math.max(0,e+bon-pen));
-    const all=s?s.allDone:isPerfect(k);
-    rows+='<tr><td>'+fmtShort(x)+'</td><td class="n">'+e+'/'+mx+'</td><td class="n">'+(bon?'+'+bon:'')+'</td><td class="n">'+(pen?'−'+pen:'')+'</td><td class="n">'+scr+'</td><td>'+(all?'<span class="ok">★ Viskas</span>':(i===0?'Vyksta':'<span class="no">Ne viskas</span>'))+'</td></tr>';
+    const bon=s?(s.sat+s.sun):(r&&r.bonus)||0,pen=(r&&i>0&&r.penalty)||0,scr=s?s.screen:(r&&r.screen!=null?r.screen:0),l=dayLevel(k);
+    rows+='<tr><td>'+fmtShort(x)+'</td><td class="n">'+(l<0&&i>0?'–':e+'/'+mx)+'</td><td class="n">'+(bon?'+'+bon:'')+(pen?' −'+pen:'')+'</td><td class="n">'+(l<0&&i>0?'–':scr)+'</td><td>'+(l<0?(i===0&&!(r&&r.skip)?'Vyksta':'Neskaičiuojama'):l?MED[l]+' '+LVL[l].split(' ')[0]:'Pradėta')+'</td></tr>';
   }
-  return '<div class="panel"><h3>Paskutinės dienos</h3><div class="tablebox"><table class="hist"><thead><tr><th>Diena</th><th>Taškai</th><th>Premija</th><th>Bauda</th><th>Min</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div><p class="note">Skaičiuojama nuo '+esc(C.startDate)+'.</p></div>';
+  return '<div class="panel"><h3>Paskutinės dienos</h3><div class="tablebox"><table class="hist"><thead><tr><th>Diena</th><th>Taškai</th><th>Premija</th><th>Min</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div><p class="note">Skaičiuojama nuo '+esc(C.startDate)+'. Minusas prie premijos – sena bauda, dabar baudų nebėra. Praėjusią dieną pataisysite skirtuke „Šiandien“ rodykle ‹.</p></div>';
 }
 function parentSettings(){
   if(!draft)draft=JSON.parse(JSON.stringify(C));
@@ -917,12 +943,11 @@ function parentSettings(){
     fld('Kaip kreiptis (šauksmininkas)','childCall',q.childCall,'text','Jonai')+'</div></div>';
   h+='<div class="panel"><h3>Taisyklės</h3><div class="grid2">'+
     fld('Daugiausia taškų per dieną','dailyMax',q.dailyMax,'number')+
-    fld('Šeštadienio premija už pilną dieną, min','satBonusPerDay',q.satBonusPerDay,'number')+
+    fld('Šeštadienio premija už 🥇 dieną, min','satBonusPerDay',q.satBonusPerDay,'number')+
+    fld('Šeštadienio premija už 🥈 dieną, min','satBonusSilver',q.satBonusSilver==null?3:q.satBonusSilver,'number')+
     fld('Sekmadienį už kiekvieną ND, min','sunHwBonus',q.sunHwBonus,'number')+
-    fld('Bauda: žingsnis, min','penaltyStep',q.penaltyStep,'number')+
-    fld('Bauda: daugiausia, min','penaltyMax',q.penaltyMax,'number')+
     fld('Taisyklės galioja nuo','startDate',q.startDate,'date')+
-  '</div><p class="note">Bauda: 1 diena be visų užduočių −'+q.penaltyStep+' min kitą dieną, 2 iš eilės −'+(2*q.penaltyStep)+', … daugiausia −'+q.penaltyMax+'. Pilna diena baudą nuima.</p></div>';
+  '</div><p class="note">Baudų nėra. Dienos lygis priklauso nuo svarbiausių užduočių: 🥉 nuo 40 %, 🥈 nuo 70 %, 🥇 visos. Iš penkių tai 2, 4 ir 5. Diena, kai nieko nepažymėta, neskaičiuojama.</p></div>';
   h+='<div class="panel"><h3>Krepšinio treniruotės</h3><div class="grid2">'+WEEK_ORDER.map(dw=>'<label class="f">'+DAY_LONG[dw]+'<input type="time" id="tr-'+dw+'" data-tr="'+dw+'" value="'+esc((q.training||{})[dw]||'')+'"></label>').join('')+'</div><p class="note">Palikite tuščią, jei tą dieną treniruotės nėra.</p></div>';
   h+='<div class="panel"><h3>Pamokų tvarkaraštis</h3><p class="note">Viena pamoka eilutėje, iš eilės.</p><div class="grid2">'+[1,2,3,4,5].map(dw=>'<label class="f">'+DAY_LONG[dw]+'<textarea id="tt-'+dw+'" data-tt="'+dw+'" rows="6">'+esc(((q.timetable||{})[dw]||[]).join('\n'))+'</textarea></label>').join('')+'</div>'+
     '<label class="f">Kuprinėje visada (po vieną eilutėje)<textarea id="bag-extra" data-bag="1" rows="4">'+esc((q.bagExtras||[]).join('\n'))+'</textarea></label>'+
@@ -931,8 +956,8 @@ function parentSettings(){
     '<label class="f">Ką dėti į kuprinę kiekvienai pamokai<textarea id="les-items" data-li="1" rows="9">'+esc(lessonItemsText(q))+'</textarea></label>'+
     '<p class="note">Viena pamoka eilutėje: „Pamoka: daiktas, daiktas“. Pavadinimas turi sutapti su tvarkaraščiu. Jei po dvitaškio tuščia, tai pamokai nieko nereikia.</p></div>';
   // tasks
-  const sums=WEEK_ORDER.map(dw=>{const s=q.tasks.filter(t=>t.type==='train'?!!(q.training||{})[(dw+1)%7]:(t.days||[]).includes(dw)).reduce((a,t)=>a+(+t.pts||0),0);return '<span class="'+(s===+q.dailyMax?'':'bad')+'">'+DAY_SHORT[dw]+' '+s+'</span>'}).join('');
-  h+='<div class="panel"><h3>Užduotys</h3><p class="note">Taškų suma kiekvienai dienai. Jei ji ne '+q.dailyMax+', tą dieną vaikui taškai automatiškai perskaičiuojami, kad iš viso būtų '+q.dailyMax+'.</p><div class="sums">'+sums+'</div>';
+  const sums=coreSums(q);
+  h+='<div class="panel"><h3>Užduotys</h3><p class="note">Svarbiausių užduočių skaičius kiekvieną dieną (siūloma 5). Jos lemia dienos lygį, kitos duoda papildomų taškų. Dienos užduočių taškai visada perskaičiuojami iki '+q.dailyMax+'.</p><div class="sums">'+sums+'</div>';
   h+=q.tasks.map((t,i)=>'<div class="trow">'+
     '<div class="tline"><input type="text" class="ico" id="ti-'+i+'-icon" data-ti="'+i+'" data-f="icon" value="'+esc(t.icon)+'" aria-label="Ženkliukas" maxlength="4"><input type="text" id="ti-'+i+'-title" data-ti="'+i+'" data-f="title" value="'+esc(t.title)+'" aria-label="Pavadinimas"></div>'+
     '<div class="tgrid"><label class="f">Taškai<input type="number" id="ti-'+i+'-pts" data-ti="'+i+'" data-f="pts" value="'+esc(t.pts)+'" min="0" max="30"></label>'+
@@ -940,6 +965,7 @@ function parentSettings(){
     '<label class="f">Dienos dalis<select id="ti-'+i+'-part" data-ti="'+i+'" data-f="part">'+PARTS.map(p=>'<option value="'+p.id+'"'+(t.part===p.id?' selected':'')+'>'+p.label+'</option>').join('')+'</select></label>'+
     '<label class="f">Rūšis<select id="ti-'+i+'-type" data-ti="'+i+'" data-f="type">'+Object.entries(TYPES).map(([v,l])=>'<option value="'+v+'"'+(t.type===v?' selected':'')+'>'+l+'</option>').join('')+'</select></label></div>'+
     (t.type==='train'?'<p class="note">Rodoma vakare prieš treniruotės dieną.</p>':'<div class="days">'+WEEK_ORDER.map(dw=>'<button class="'+((t.days||[]).includes(dw)?'on':'')+'" data-act="tday" data-i="'+i+'" data-d="'+dw+'">'+DAY_SHORT[dw]+'</button>').join('')+'</div>')+
+    '<div class="corerow"><span>⭐ Svarbiausia</span><div class="days">'+WEEK_ORDER.map(dw=>'<button class="'+((t.core||[]).includes(dw)?'on':'')+'" data-act="tcore" data-i="'+i+'" data-d="'+dw+'"'+(t.type!=='train'&&!(t.days||[]).includes(dw)?' disabled':'')+'>'+DAY_SHORT[dw]+'</button>').join('')+'</div></div>'+
     '<div><button class="danger" data-act="tdel" data-i="'+i+'">Ištrinti užduotį</button></div></div>').join('');
   h+='<button class="ghost" data-act="tadd">+ Nauja užduotis</button></div>';
   h+='<div class="panel"><h3>Nuorodos</h3><p>Vaiko telefonui (atidarykite jo iPhone Safari ir pridėkite prie pagrindinio ekrano):</p>'+
@@ -986,7 +1012,8 @@ async function tgSave(){
 }
 async function saveConfig(){
   const q=draft;
-  ['dailyMax','satBonusPerDay','sunHwBonus','penaltyStep','penaltyMax'].forEach(f=>q[f]=Math.max(0,parseInt(q[f],10)||0));
+  if(q.satBonusSilver==null)q.satBonusSilver=3;
+  ['dailyMax','satBonusPerDay','satBonusSilver','sunHwBonus'].forEach(f=>q[f]=Math.max(0,parseInt(q[f],10)||0));
   q.tasks.forEach(t=>{t.pts=Math.max(0,parseInt(t.pts,10)||0);t.timer=Math.max(0,parseInt(t.timer,10)||0)});
   try{await rpc('tl_save_config',{p_key:KEY,p_config:q});C=JSON.parse(JSON.stringify(q));dirty=false;draft=null;cacheSave();toast('Nustatymai išsaugoti');renderParent()}
   catch(e){toast('Nepavyko išsaugoti: '+e.message)}
@@ -1027,11 +1054,14 @@ return}
   if(a==='bag'){const r=rec(k,true);const it=el.dataset.item;r.bag[it]=!r.bag[it];saveDay(k,null);renderSheet();return}
   if(a==='bag-done'){const t=C.tasks.find(x=>x.id===sheetFor),de=dayExtras(today());closeSheet();markDone(t.id,de.items.length?'💶 Įdėjo: '+de.items.join(', '):null);return}
   // parent
-  if(a==='tab'){if(tab==='set'&&dirty&&el.dataset.tab!=='set'){toast('Pirma išsaugokite nustatymus');return}tab=el.dataset.tab;if(tab==='set'&&!dirty)draft=null;render();scrollTo(0,0);return}
+  if(a==='tab'){if(tab==='set'&&dirty&&el.dataset.tab!=='set'){toast('Pirma išsaugokite nustatymus');return}tab=el.dataset.tab;pOff=0;if(tab==='set'&&!dirty)draft=null;render();scrollTo(0,0);return}
   if(a==='x-add'){addTemp();return}
   if(a==='x-del'){delTemp(el);return}
-  if(a==='p-toggle'){const r=rec(k,true);const id=el.dataset.id;if(r.done[id])delete r.done[id];else r.done[id]=Date.now();saveDay(k,null);render();return}
-  if(a==='tday'){const t=draft.tasks[+el.dataset.i];const dw=+el.dataset.d;t.days=t.days||[];t.days=t.days.includes(dw)?t.days.filter(x=>x!==dw):t.days.concat(dw);el.classList.toggle('on');markDirty();refreshSums();return}
+  if(a==='p-day'){pOff=Math.min(7,Math.max(0,pOff+(+el.dataset.n)));render();return}
+  if(a==='p-skip'){const pk=keyOf(addDays(today(),-pOff)),r=rec(pk,true);r.skip=!r.skip;saveDay(pk,null);toast(r.skip?'Diena neskaičiuojama':'Diena vėl skaičiuojama');render();return}
+  if(a==='p-toggle'){const pk=keyOf(addDays(today(),-pOff)),r=rec(pk,true);const id=el.dataset.id;if(r.done[id])delete r.done[id];else r.done[id]=Date.now();saveDay(pk,null);render();return}
+  if(a==='tday'){const t=draft.tasks[+el.dataset.i];const dw=+el.dataset.d;t.days=t.days||[];t.days=t.days.includes(dw)?t.days.filter(x=>x!==dw):t.days.concat(dw);if(!t.days.includes(dw)&&t.core)t.core=t.core.filter(x=>x!==dw);markDirty();const y=scrollY;renderParent();scrollTo(0,y);return}
+  if(a==='tcore'){const t=draft.tasks[+el.dataset.i],dw=+el.dataset.d;t.core=t.core||[];t.core=t.core.includes(dw)?t.core.filter(x=>x!==dw):t.core.concat(dw);el.classList.toggle('on');markDirty();refreshSums();return}
   if(a==='tdel'){if(el.dataset.confirm!=='1'){el.dataset.confirm='1';el.textContent='Tikrai ištrinti?';return}draft.tasks.splice(+el.dataset.i,1);markDirty();renderParent();return}
   if(a==='tadd'){draft.tasks.push({id:'t'+Date.now().toString(36),icon:'⭐',title:'Nauja užduotis',pts:2,part:'vakaras',days:[1,2,3,4,5],type:'simple',timer:0});markDirty();renderParent();return}
   if(a==='save-config'){saveConfig();return}
@@ -1079,7 +1109,8 @@ document.addEventListener('input',e=>{
 });
 document.addEventListener('change',e=>{const el=e.target;if(draft&&el.dataset.ti&&el.dataset.f==='type'){draft.tasks[+el.dataset.ti].type=el.value;markDirty();renderParent()}});
 document.addEventListener('change',e=>{if(e.target.id==='x-forever'){const n=document.getElementById('x-days');n.disabled=e.target.checked}});
-function refreshSums(){const box=document.querySelector('.sums');if(!box||!draft)return;box.innerHTML=WEEK_ORDER.map(dw=>{const s=draft.tasks.filter(t=>t.type==='train'?!!(draft.training||{})[(dw+1)%7]:(t.days||[]).includes(dw)).reduce((a,t)=>a+(parseInt(t.pts,10)||0),0);return '<span class="'+(s===(parseInt(draft.dailyMax,10)||0)?'':'bad')+'">'+DAY_SHORT[dw]+' '+s+'</span>'}).join('')}
+function coreSums(q){return WEEK_ORDER.map(dw=>{const n=q.tasks.filter(t=>(t.core||[]).includes(dw)&&(t.type==='train'?!!(q.training||{})[(dw+1)%7]:(t.days||[]).includes(dw))).length;return '<span class="'+(n?'':'bad')+'">'+DAY_SHORT[dw]+' ⭐'+n+'</span>'}).join('')}
+function refreshSums(){const box=document.querySelector('.sums');if(box&&draft)box.innerHTML=coreSums(draft)}
 
 /* ---------- boot ---------- */
 function showBadKey(){document.getElementById('app').innerHTML='<div class="center"><h2>Nuoroda neteisinga</h2><p>Atidarykite nuorodą, kurią gavote iš tėvų.</p></div>'}
@@ -1110,7 +1141,7 @@ async function boot(){
   renderForce();
 }
 // keep fresh: poll while visible, catch day changes
-setInterval(()=>{if(document.visibilityState!=='visible')return;if(keyOf(today())!==lastDay){lastDay=keyOf(today());closeSheet();timer=null;renderForce()}refresh()},20000);
+setInterval(()=>{if(document.visibilityState!=='visible')return;if(keyOf(today())!==lastDay){lastDay=keyOf(today());pOff=0;closeSheet();timer=null;renderForce()}refresh()},20000);
 setInterval(()=>{if(document.visibilityState==='visible'&&ROLE!=='parent'&&!sheetFor)render()},60000);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refresh()});
 window.addEventListener('online',flush);
