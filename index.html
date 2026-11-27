@@ -133,7 +133,7 @@ h1,h2,h3{font-family:var(--f-display);font-weight:800;line-height:1.1;margin:0;t
 .big{flex:1 1 180px;min-height:60px;border:0;border-radius:16px;background:var(--accent);color:var(--accent-ink);font-family:var(--f-display);font-size:22px;padding:10px 16px;box-shadow:0 4px 0 rgba(0,0,0,.18)}
 .big:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
 .big:disabled{opacity:.45;cursor:not-allowed}
-.sheet .big,.sheet .ghost{flex:0 0 auto}
+.sheet .big,.sheet .ghost,.wrap>.big,.wrap>.ghost{flex:0 0 auto}
 .ghost{flex:0 1 auto;min-height:60px;border:2px solid var(--line);background:var(--surface);border-radius:16px;font-weight:800;padding:8px 14px}
 .timer{display:flex;align-items:center;gap:12px;background:var(--surface-2);border-radius:14px;padding:10px 12px}
 .timer .led{color:var(--accent);text-shadow:none;font-size:34px}
@@ -187,6 +187,52 @@ h1,h2,h3{font-family:var(--f-display);font-weight:800;line-height:1.1;margin:0;t
 .dl{font-weight:800;font-size:13px;color:var(--ink-soft)}.dream.ok .dl{color:var(--good)}
 .dream.add{align-items:center;justify-content:center;background:transparent;box-shadow:none;border:3px dashed var(--line)}
 .dream.add .plus{font-family:var(--f-display);font-weight:800;font-size:44px;line-height:1;color:var(--accent)}
+
+/* Basketball */
+.subtabs{position:static}
+.ktcard{background:var(--board);color:var(--board-ink);border-radius:20px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:var(--shadow)}
+.ktv{font-family:var(--f-led);color:var(--led);font-size:32px;line-height:1.15}
+.ktcard small{color:#8d9abb;font-weight:700;font-size:13px;display:block}
+.ktcard .small-btn{background:var(--led);color:#1a1204}
+.req{display:flex;align-items:center;gap:8px;background:var(--gold-soft);border-radius:14px;padding:10px 12px;font-weight:800;font-size:14px;flex-wrap:wrap}
+.req span{flex:1 1 160px}
+.gcard{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:0;background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:12px 14px;font:inherit;color:inherit;min-height:72px}
+.gdate{font-family:var(--f-display);font-weight:800;font-size:15px;color:var(--ink-soft);text-align:center;width:44px;line-height:1.15;flex:none}
+.gmid{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.gmid b{font-size:17px;font-weight:900;overflow-wrap:anywhere}.gmid small{font-weight:700;color:var(--ink-soft);font-size:13px}
+.gpts{font-family:var(--f-led);font-size:28px;color:var(--accent);text-align:right;line-height:1;flex:none}.gpts small{display:block;font-family:var(--f-body);font-size:11px;color:var(--ink-soft);font-weight:800}
+.live-tag{color:var(--bad);font-weight:900}.win{color:var(--good);font-weight:900}.loss{color:var(--ink-soft);font-weight:900}
+.gtop{display:flex;align-items:center;gap:10px}
+.gtop h1{font-size:22px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.back{border:0;background:var(--surface);box-shadow:var(--shadow);border-radius:12px;min-width:48px;min-height:48px;font-size:26px;font-weight:900;flex:none}
+.x2{border:0;background:var(--surface-2);border-radius:12px;min-height:48px;padding:0 12px;font-weight:800;flex:none}
+.lscore{display:flex;align-items:center;gap:14px}.lscore .led{font-size:64px}.lscore .chips{flex:1}
+.bbg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.bb{min-height:76px;border-radius:18px;border:3px solid transparent;font-family:var(--f-display);font-weight:800;font-size:28px;line-height:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px 2px;transition:transform .08s,filter .08s;-webkit-user-select:none;user-select:none}
+.bb small{font-family:var(--f-body);font-size:12px;font-weight:800}
+.bb.make{background:var(--good-soft);color:var(--good);border-color:var(--good)}
+.bb.miss{background:var(--surface);color:var(--bad);border-color:var(--bad-soft)}
+.bb.oth{background:var(--gold-soft);color:var(--ink);font-size:16px;border-color:var(--gold)}
+.bb.hit{transform:scale(.9);filter:brightness(1.35)}
+.bbundo{width:100%;min-height:56px}
+.lastev{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px;font-weight:800;color:var(--ink-soft)}
+.lastev span{background:var(--surface-2);border-radius:8px;padding:2px 8px}
+.wl button{flex:1}
+.vs{align-self:flex-end;font-weight:900;font-size:24px;padding-bottom:10px}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tile{background:var(--surface-2);border-radius:12px;padding:8px 4px;text-align:center}
+.tile b{display:block;font-family:var(--f-display);font-size:22px;line-height:1.15}
+.tile span{font-size:11px;font-weight:800;color:var(--ink-soft)}
+.badges{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.badge{display:flex;gap:8px;align-items:center;background:var(--gold-soft);border-radius:14px;padding:10px}
+.badge i{font-style:normal;font-size:28px;flex:none}
+.badge b{display:block;font-size:14px;line-height:1.2}.badge small{font-size:12px;font-weight:700;color:var(--ink-soft)}
+.badge.off{background:var(--surface-2)}.badge.off i{filter:grayscale(1);opacity:.5}
+.chart{width:100%;height:auto;display:block}
+.bbt td,.bbt th{padding:6px 4px;font-size:13px}.bbt small{color:var(--ink-soft);font-weight:700}
+.cele{text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}.cele .alist{width:100%}
+.big-i{font-size:64px;line-height:1}
+.alist{list-style:none;margin:0;padding:0;font-weight:800}
+.alist li{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid var(--line);font-size:14px;text-align:left}
 
 /* Sheet */
 .veil{position:fixed;inset:0;background:rgba(6,10,20,.55);z-index:40;display:flex;align-items:flex-end;justify-content:center}
@@ -243,7 +289,7 @@ button:disabled{opacity:.35}
 .corerow{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:800;color:var(--ink-soft)}
 .corerow .days button.on{background:var(--gold);border-color:var(--gold);color:#fff}
 .tabs{display:flex;gap:6px;background:var(--surface-2);border-radius:14px;padding:4px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
-.tabs button{flex:1;border:0;background:transparent;border-radius:10px;padding:10px 6px;font-weight:800;font-size:14px;color:var(--ink-soft)}
+.tabs button{flex:1 1 auto;border:0;background:transparent;border-radius:10px;padding:10px 4px;font-weight:800;font-size:13px;color:var(--ink-soft)}
 .tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
 .panel{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:14px;display:flex;flex-direction:column;gap:12px}
@@ -380,6 +426,12 @@ let seq={};           // per-day change counter (this session)
 let I={};             // child items: id -> {kind,data}
 let pendI={};         // items waiting to sync: id -> {kind,data|null}
 let itemVer=0;
+let pendG=[];         // basketball taps waiting to sync, in order
+let gInFlight=null;
+let view=null;        // null | 'bb' (child basketball page) | 'live:<gameId>'
+let bbSub='games';
+let celeList=[];
+let wakeLock=null;
 let syncState='wait';
 let tab='today';
 let pOff=0;           // parent view: 0 today, 1 yesterday…
@@ -389,8 +441,8 @@ let timer=null;       // {id,end,min}
 let sheetFor=null;
 let undoInfo=null;
 
-function cacheLoad(){try{const c=JSON.parse(localStorage.getItem(CACHE)||'null');if(c){C=c.C;D=c.D||{};pending=c.pending||{};I=c.I||{};pendI=c.pendI||{};ROLE=ROLE||c.ROLE;TG=c.TG||TG;CHILD_KEY=c.CHILD_KEY||''}}catch(e){}}
-function cacheSave(){try{localStorage.setItem(CACHE,JSON.stringify({C,D,pending,I,pendI,ROLE,TG,CHILD_KEY}))}catch(e){}}
+function cacheLoad(){try{const c=JSON.parse(localStorage.getItem(CACHE)||'null');if(c){C=c.C;D=c.D||{};pending=c.pending||{};I=c.I||{};pendI=c.pendI||{};pendG=c.pendG||[];ROLE=ROLE||c.ROLE;TG=c.TG||TG;CHILD_KEY=c.CHILD_KEY||''}}catch(e){}}
+function cacheSave(){try{localStorage.setItem(CACHE,JSON.stringify({C,D,pending,I,pendI,pendG,ROLE,TG,CHILD_KEY}))}catch(e){}}
 
 async function rpc(fn,args){
   if(DEMO){
@@ -483,7 +535,7 @@ async function loadServer(){
     if(!cfg&&ROLE==='parent'&&!DEMO){await rpc('tl_save_config',{p_key:KEY,p_config:C})}
     const sd=res.days||{};
     Object.keys(sd).forEach(k=>{if(!pending[k]&&(seq[k]||0)===(seq0[k]||0))D[k]=sd[k]});
-    if(res.items&&itemVer===iv0){I=res.items;Object.keys(pendI).forEach(id=>{const v=pendI[id];if(v.data)I[id]={kind:v.kind,data:v.data};else delete I[id]})}
+    if(res.items&&itemVer===iv0){I=res.items;Object.keys(pendI).forEach(id=>{const v=pendI[id];if(v.data)I[id]={kind:v.kind,data:v.data};else delete I[id]});pendG.forEach(applyG)}
     if(res.tg)TG=res.tg;
     if(res.childKey)CHILD_KEY=res.childKey;
     syncState='ok';
@@ -500,26 +552,36 @@ let flushing=false;
 async function flush(){
   if(flushing)return;flushing=true;
   try{
-    for(let guard=0;Object.keys(pending).length&&guard<20;guard++){
+    for(let round=0;round<60;round++){
       for(const k of Object.keys(pending)){
         const ev=pending[k]===true?null:pending[k],n=seq[k]||0;
         pending[k]=true; // message is on its way; new changes may queue a new one
         try{await rpc('tl_save_day',{p_key:KEY,p_day:k,p_rec:D[k],p_event:ev})}
         catch(e){if(ev)pending[k]=typeof pending[k]==='string'?ev+'\n'+pending[k]:ev;throw e}
-        if((seq[k]||0)===n)delete pending[k];
+        const same=(seq[k]||0)===n;seq[k]=(seq[k]||0)+1; // a load that started before this save must not undo it
+        if(same)delete pending[k];
       }
-    }
-    for(let guard=0;Object.keys(pendI).length&&guard<20;guard++){
       for(const id of Object.keys(pendI)){
         const v=pendI[id];
-        try{await rpc('tl_save_item',{p_key:KEY,p_id:id,p_kind:v.kind,p_data:v.data})}
+        try{await rpc('tl_save_item',{p_key:KEY,p_id:id,p_kind:v.kind,p_data:v.data,p_event:v.msg||null})}
         catch(e){if(e.message!=='bad_item'&&e.message!=='too_many')throw e;if(v.data)delete I[id];toast('Nepavyko įrašyti')}
-        if(pendI[id]===v)delete pendI[id];
+        itemVer++;if(pendI[id]===v)delete pendI[id];
       }
+      // basketball taps, in order; a tap waits until its game itself is on the server
+      while(pendG.length){
+        const o=pendG[0];if(pendI[o.g])break;
+        gInFlight=o;
+        try{await rpc('tl_game_ev',{p_key:KEY,p_game:o.g,p_op:o.op,p_ev:o.i,p_t:o.t||null})}
+        catch(e){gInFlight=null;if(!['no_game','bad_item','too_many'].includes(e.message))throw e}
+        gInFlight=null;itemVer++;const j=pendG.indexOf(o);if(j>=0)pendG.splice(j,1);
+      }
+      if(!Object.keys(pending).length&&!Object.keys(pendI).length&&!pendG.length)break;
     }
     syncState='ok';
-  }catch(e){syncState='off'}
+  }catch(e){gInFlight=null;syncState='off'}
   flushing=false;cacheSave();paintSync();
+  // something was queued while we were sending: send it too
+  if(syncState==='ok'&&(Object.keys(pending).length||Object.keys(pendI).length||pendG.length))setTimeout(flush,50);
 }
 function saveDay(k,event){
   stamp(k);seq[k]=(seq[k]||0)+1;
@@ -528,10 +590,12 @@ function saveDay(k,event){
   pending[k]=event?(typeof prev==='string'&&prev?prev+'\n'+event:event):(prev||true);
   cacheSave();flush();
 }
-function saveItem(id,kind,data){
+function saveItem(id,kind,data,msg){
   itemVer++;
+  if(data&&kind==='game'&&I[id])data.ev=I[id].data.ev||[]; // taps are saved separately
   if(data)I[id]={kind,data};else delete I[id];
-  pendI[id]={kind,data:data||null};
+  const prev=pendI[id];
+  pendI[id]={kind,data:data||null,msg:[prev&&prev.msg,msg].filter(Boolean).join('\n')||null};
   cacheSave();flush();
 }
 function paintSync(){const el=document.getElementById('sync');if(!el)return;el.className='sync'+(syncState==='off'?' off':syncState==='wait'?' wait':'');el.lastChild.textContent=syncState==='off'?' Nėra ryšio':syncState==='wait'?' Jungiama…':(DEMO?' Demo':' Išsaugota')}
@@ -678,7 +742,8 @@ const eur=c=>(c<0?'−':'')+(Math.abs(c)/100).toLocaleString('lt-LT',{minimumFra
 function parseMoney(t){t=String(t||'').replace(/[\s€]/g,'').replace(',','.');if(!/^\d{1,6}(\.\d{1,2})?$/.test(t))return null;return Math.round(parseFloat(t)*100)}
 const newId=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6).replace(/[^a-z0-9]/g,'');
 const itemsOf=kind=>Object.keys(I).filter(id=>I[id].kind===kind).map(id=>Object.assign({id},I[id].data)).sort((a,b)=>a.at-b.at);
-const balance=()=>itemsOf('money').reduce((s,x)=>s+(+x.amt||0),0);
+const moneyItems=()=>itemsOf('money').concat(itemsOf('bbx').filter(x=>x.status==='ok').map(x=>({id:x.id,amt:x.cents,note:'🏀 Krepšinio premija ('+x.kt+' KT)',at:x.at}))).sort((a,b)=>a.at-b.at);
+const balance=()=>moneyItems().reduce((s,x)=>s+(+x.amt||0),0);
 const journalOf=r=>[0,1,2].map(i=>String((r.journal||[])[i]||''));
 // counts different entries of at least 3 letters; each one is worth 1 point
 const journalCount=r=>new Set(journalOf(r).map(x=>x.trim().toLowerCase()).filter(x=>x.length>=3)).size;
@@ -695,10 +760,10 @@ function dreamCardHTML(x,bal,editable){
 }
 function quickHTML(r){
   const n=journalCount(r);
-  return '<nav class="quick" aria-label="Greitos nuorodos"><button data-act="my" data-s="@journal">📓 Sėkmės '+n+'/3</button><button data-act="go" data-to="svajones">🌟 Svajonės</button><button data-act="go" data-to="pinigai">💰 '+eur(balance())+'</button></nav>';
+  return '<nav class="quick" aria-label="Greitos nuorodos"><button data-act="my" data-s="@journal">📓 Sėkmės '+n+'/3</button><button data-act="go" data-to="svajones">🌟 Svajonės</button><button data-act="go" data-to="pinigai">💰 '+eur(balance())+'</button><button data-act="bb-go">🏀 '+ktState().bal+' KT</button></nav>';
 }
 function mySectionsHTML(r){
-  const n=journalCount(r),ds=itemsOf('dream'),bal=balance(),ms=itemsOf('money');
+  const n=journalCount(r),ds=itemsOf('dream'),bal=balance(),ms=moneyItems();
   let h='<section class="part" id="zurnalas"><h2>📓 Sėkmės žurnalas <span>'+n+'/3</span></h2><button class="jcard'+(n===3?' done':'')+'" data-act="my" data-s="@journal">'+
     (n?'<ol>'+journalOf(r).filter(t=>t.trim()).map(t=>'<li>'+esc(t)+'</li>').join('')+'</ol><span class="jl">'+(n===3?'Visos trys įrašytos ✓ +3':'+'+n+' · įrašyk dar '+(3-n))+'</span>':'<b>Ką šiandien padarei gerai?</b><span class="jl">Įrašyk tris dalykus. Už kiekvieną +1 taškas</span>')+'</button></section>';
   h+='<section class="part" id="pinigai"><h2>💰 Mano pinigai</h2><div class="money"><span class="ml">Jau turiu</span><span class="mv">'+eur(bal)+'</span>'+
@@ -726,6 +791,27 @@ function renderMySheet(el){
     b=head('🌟',x?'Mano svajonė':'Nauja svajonė')+'<label class="f">Apie ką svajoju<input type="text" id="my-title" value="'+esc(x?x.title:'')+'" placeholder="Pvz. naujas krepšinio kamuolys" maxlength="60" autocomplete="off"></label>'+
       '<label class="f">Kiek reikia pinigų, €<input type="text" inputmode="decimal" id="my-amt" value="'+(x?String(x.price/100).replace('.',','):'')+'" placeholder="Pvz. 35" maxlength="10" autocomplete="off"></label>'+err+
       '<button class="big" data-act="d-save">Išsaugoti</button>'+(x?'<button class="ghost" data-act="d-del">Ištrinti svajonę</button>':'');
+  }else if(kind==='game'){
+    const p=sheetFor.slice(1).split(':'),mode=p[1],gid=p[2],x=gid&&I[gid]?I[gid].data:null;
+    if(mode!=='new'&&!x){closeSheet();return}
+    const fin=mode==='fin',res=x&&x.res||'';
+    b=head(fin?'🏁':'🏀',mode==='new'?'Naujos varžybos':fin?'Varžybų rezultatas':'Varžybų duomenys');
+    if(!fin)b+='<label class="f">Data<input type="date" id="gm-date" value="'+esc(x?x.date:keyOf(today()))+'"></label>'+
+      '<label class="f">Varžovas (nebūtina)<input type="text" id="gm-opp" value="'+esc(x?x.opp:'')+'" placeholder="Pvz. Žalgirio mokykla" maxlength="60" autocomplete="off"></label>'+
+      '<label class="f">Turnyras ar pavadinimas (nebūtina)<input type="text" id="gm-title" value="'+esc(x?x.title:'')+'" placeholder="Pvz. Vilniaus taurė" maxlength="60" autocomplete="off"></label>';
+    if(mode!=='new')b+='<div class="add"><label class="f" style="flex:1">Mūsų komanda<input type="number" inputmode="numeric" id="gm-us" min="0" max="999" value="'+(x.us==null?'':x.us)+'"></label><span class="vs">:</span><label class="f" style="flex:1">Varžovai<input type="number" inputmode="numeric" id="gm-them" min="0" max="999" value="'+(x.them==null?'':x.them)+'"></label></div>'+
+      '<div class="lseg wl"><button class="n'+(res==='W'?' on':'')+'" data-act="bb-res" data-r="W">Laimėta</button><button class="h'+(res==='L'?' on':'')+'" data-act="bb-res" data-r="L">Pralaimėta</button></div><input type="hidden" id="gm-res" value="'+res+'">';
+    b+=err+'<button class="big" data-act="g-save">'+(mode==='new'?'Pradėti žymėti':fin?(x.fin?'Išsaugoti':'Baigti varžybas'):'Išsaugoti')+'</button>';
+    if(fin)b+='<p class="note">Rezultatą galima palikti tuščią ir įrašyti vėliau. Užbaigus varžybas paskaičiuojami rekordai ir ženkliukai.</p>';
+    if(mode==='edit')b+='<button class="ghost" data-act="g-del">Ištrinti varžybas</button>';
+  }else if(kind==='bbx'){
+    const kt=ktState(),cfg=bbCfg(),euros=Math.floor(kt.bal/(cfg.rate||10));
+    b=head('💶','Keisti į pinigus')+'<p>Turi <b>'+kt.bal+' KT</b>. '+cfg.rate+' KT = 1 €.</p>'+
+      (euros>0&&kt.bal>=cfg.min?'<button class="big" data-act="bbx-req">Prašyti '+eur(euros*100)+' už '+euros*cfg.rate+' KT</button><p class="note">Tėvai gaus žinutę. Patvirtinus pinigai atsiras skiltyje „Mano pinigai“.</p>':'<p class="note">Keisti galima nuo '+cfg.min+' KT.</p>');
+  }else if(kind==='cele'){
+    const kt=celeList.reduce((a,x)=>a+x.kt,0);
+    b=head('🎉','Sveikiname!')+'<div class="cele"><div class="big-i">'+(celeList[0]?celeList[0].icon:'🏅')+'</div><ul class="alist">'+celeList.map(x=>'<li><span>'+x.icon+' '+esc(x.title)+'</span><b>+'+x.kt+' KT</b></li>').join('')+'</ul>'+
+      (kt?'<p style="font-weight:900;font-size:20px">Iš viso +'+kt+' krepšinio taškų!</p>':'')+'</div><button class="big" data-act="sheet-close">Super! 🏀</button>';
   }else{
     const T={plus:['💰','Gavau pinigų','Kiek gavai, €','Iš kur? (nebūtina)','Pvz. močiutė'],minus:['🛒','Išleidau pinigų','Kiek išleidai, €','Kam? (nebūtina)','Pvz. ledai'],set:['💰','Jau turiu pinigų','Kiek iš viso turi, €','','']}[arg];
     b=head(T[0],T[1])+'<p class="note" style="font-size:14px">Dabar įrašyta: '+eur(balance())+'</p><label class="f">'+T[2]+'<input type="text" inputmode="decimal" id="my-amt" placeholder="Pvz. 12,50" maxlength="10" autocomplete="off"></label>'+
@@ -757,12 +843,209 @@ function mySave(a,el){
   }
   // money
   if(amt===null||(arg!=='set'&&!amt)){myErr('Įrašyk sumą skaičiais, pvz. 5 arba 12,50.');return}
-  const bal=balance(),first=!itemsOf('money').length;
+  const bal=balance(),first=!moneyItems().length;
   let diff=amt,note=(document.getElementById('my-note')||{value:''}).value.trim().slice(0,60);
   if(arg==='minus'){if(amt>bal){myErr('Tiek pinigų neturi. Dabar įrašyta '+eur(bal)+'.');return}diff=-amt}
   if(arg==='set'){diff=amt-bal;note=first?'Jau turėjau':'Pataisyta suma'}
   if(diff)saveItem(newId('m'),'money',{amt:diff,note,at:Date.now()});
   closeSheet();render();if(arg==='plus')ding(false);toast('Dabar turi '+eur(balance()));
+}
+
+/* ---------- basketball ---------- */
+const BBT={p1:'+1',p2:'+2',p3:'+3',m1:'✗ 1',m2:'✗ 2',m3:'✗ 3',reb:'Atkovotas',ast:'Perdavimas',stl:'Perimtas'};
+const BBL={p1:'pataikė baudos metimą',p2:'pataikė dvitaškį',p3:'pataikė tritaškį',m1:'nepataikė baudos metimo',m2:'nepataikė dvitaškio',m3:'nepataikė tritaškio',reb:'atkovotas kamuolys',ast:'rezultatyvus perdavimas',stl:'perimtas kamuolys'};
+const BB_DEF={first:10,record:5,badge:10,effort:3,star:10,rate:20,min:100};
+const bbCfg=()=>Object.assign({},BB_DEF,C.bb||{});
+const BADGES=[
+  {c:'first',i:'🎉',n:'Pirmos varžybos',d:'Sužaisk ir užbaik pirmas varžybas',k:'first'},
+  {c:'three',i:'🎯',n:'Pirmas tritaškis',d:'Pataikyk tritaškį',k:'badge'},
+  {c:'ten',i:'🔟',n:'10 taškų varžybose',d:'Pelnyk 10 taškų per varžybas',k:'badge'},
+  {c:'reb5',i:'🧲',n:'Kamuolių rinkikas',d:'5+ atkovoti kamuoliai per varžybas',k:'badge'},
+  {c:'ast3',i:'🤝',n:'Komandos žaidėjas',d:'3+ rezultatyvūs perdavimai per varžybas',k:'badge'},
+  {c:'star',i:'⭐',n:'Kylanti žvaigždė',d:'3 varžybas iš eilės pelnyk daugiau nei tavo vidurkis',k:'star',rep:1},
+  {c:'rec',i:'🏆',n:'Asmeninis rekordas',d:'Pagerink savo rekordą',k:'record',rep:1},
+  {c:'eff',i:'💪',n:'Pastangos',d:'Daugiau atkovotų ar perdavimų nei tavo vidurkis',k:'effort',rep:1}
+];
+const pct=x=>x==null?'–':Math.round(x*100)+'%';
+const num1=x=>(Math.round(x*10)/10).toLocaleString('lt-LT');
+function gStats(g){
+  const c={p1:0,p2:0,p3:0,m1:0,m2:0,m3:0,reb:0,ast:0,stl:0};
+  (g.ev||[]).forEach(e=>{if(c[e.t]!=null)c[e.t]++});
+  c.pts=c.p1+2*c.p2+3*c.p3;c.a1=c.p1+c.m1;c.a2=c.p2+c.m2;c.a3=c.p3+c.m3;
+  c.fgm=c.p2+c.p3;c.fga=c.a2+c.a3;c.fg=c.fga?c.fgm/c.fga:null;c.ft=c.a1?c.p1/c.a1:null;
+  return c;
+}
+const games=()=>itemsOf('game').sort((a,b)=>b.date.localeCompare(a.date)||b.at-a.at);
+const finGames=()=>games().filter(g=>g.fin).reverse(); // oldest first
+// Awards are worked out from the finished games every time, so editing or deleting a game fixes them too.
+// Test games are counted on their own, so they never change real records, averages or KT.
+const realFin=()=>{const f=finGames(),r=f.filter(g=>!g.test);return r.length?r:f};
+function bbAwards(){const f=finGames();return awardsFor(f.filter(g=>!g.test)).concat(awardsFor(f.filter(g=>g.test)))}
+function awardsFor(list){
+  const cfg=bbCfg(),out=[],once={},best={pts:0,reb:0,ast:0,fg:null},sum={pts:0,reb:0,ast:0};let streak=0;
+  list.forEach((g,i)=>{
+    const s=gStats(g);
+    const add=(c,sub,title)=>{const b=BADGES.find(x=>x.c===c);out.push({key:c+(sub?':'+sub:'')+'@'+g.id,c,gid:g.id,date:g.date,icon:b.i,title:title||b.n,kt:g.test?0:(+cfg[b.k]||0),test:!!g.test})};
+    if(i===0)add('first');
+    if(!once.three&&s.p3>0){once.three=1;add('three')}
+    if(!once.ten&&s.pts>=10){once.ten=1;add('ten')}
+    if(!once.reb5&&s.reb>=5){once.reb5=1;add('reb5')}
+    if(!once.ast3&&s.ast>=3){once.ast3=1;add('ast3')}
+    if(i>0){
+      const recPts=s.pts>best.pts,recReb=s.reb>best.reb,recAst=s.ast>best.ast;
+      if(recPts)add('rec','pts','Rekordas: '+s.pts+' tšk.');
+      if(recReb)add('rec','reb','Rekordas: '+s.reb+' atkovoti');
+      if(recAst)add('rec','ast','Rekordas: '+s.ast+' perdavimai');
+      if(s.fga>=4&&best.fg!=null&&s.fg>best.fg)add('rec','fg','Rekordas: '+pct(s.fg)+' pataikymas');
+      if(!recReb&&s.reb>sum.reb/i)add('eff','reb','Daugiau atkovotų nei vidurkis');
+      if(!recAst&&s.ast>sum.ast/i)add('eff','ast','Daugiau perdavimų nei vidurkis');
+      if(s.pts>sum.pts/i){if(++streak===3){add('star');streak=0}}else streak=0;
+    }
+    best.pts=Math.max(best.pts,s.pts);best.reb=Math.max(best.reb,s.reb);best.ast=Math.max(best.ast,s.ast);
+    if(s.fga>=4)best.fg=Math.max(best.fg==null?-1:best.fg,s.fg);
+    sum.pts+=s.pts;sum.reb+=s.reb;sum.ast+=s.ast;
+  });
+  return out;
+}
+function ktState(){
+  const aw=bbAwards(),earned=aw.reduce((a,x)=>a+x.kt,0),xs=itemsOf('bbx');
+  const used=xs.filter(x=>x.status!=='no').reduce((a,x)=>a+x.kt,0);
+  return{aw,earned,bal:earned-used,xs};
+}
+function applyG(o){const g=I[o.g];if(!g)return;const ev=g.data.ev||[];if(o.op==='add'){if(!ev.some(e=>e.i===o.i))g.data.ev=ev.concat({i:o.i,t:o.t})}else g.data.ev=ev.filter(e=>e.i!==o.i)}
+function addEv(gid,t){if(!I[gid])return;const o={g:gid,op:'add',i:newId('e'),t};applyG(o);itemVer++;pendG.push(o);cacheSave();flush()}
+function undoEv(gid){
+  const g=I[gid],ev=g&&g.data.ev||[];if(!ev.length)return null;const last=ev[ev.length-1];
+  g.data.ev=ev.slice(0,-1);itemVer++;
+  const pi=pendG.findIndex(o=>o.op==='add'&&o.i===last.i);
+  if(pi>=0&&pendG[pi]!==gInFlight)pendG.splice(pi,1);else pendG.push({g:gid,op:'del',i:last.i});
+  cacheSave();flush();return last;
+}
+async function syncWake(){
+  const want=!!(view&&view.startsWith('live:'))&&document.visibilityState==='visible';
+  try{if(want&&!wakeLock&&navigator.wakeLock){wakeLock=await navigator.wakeLock.request('screen');wakeLock.addEventListener('release',()=>{wakeLock=null})}
+      else if(!want&&wakeLock){const w=wakeLock;wakeLock=null;await w.release()}}catch(e){wakeLock=null}
+}
+function gameName(g){return g.opp?'prieš '+g.opp:(g.title||'Varžybos')}
+function resultHTML(g){
+  const sc=g.us!=null&&g.them!=null?g.us+':'+g.them:'';
+  if(!g.fin)return '<span class="live-tag">● Vyksta</span>';
+  return g.res==='W'?'<span class="win">Laimėta'+(sc?' '+sc:'')+'</span>':g.res==='L'?'<span class="loss">Pralaimėta'+(sc?' '+sc:'')+'</span>':(sc?'<span>'+sc+'</span>':'<span>Baigtos</span>');
+}
+function liveHTML(gid){
+  const g=Object.assign({id:gid},I[gid].data),s=gStats(g),ev=g.ev||[],last=ev[ev.length-1];
+  const btn=(t,cls,lbl,sm)=>'<button class="bb '+cls+'" data-act="bb-ev" data-t="'+t+'" aria-label="'+BBL[t]+'">'+lbl+(sm?'<small>'+sm+'</small>':'')+'</button>';
+  let h='<header class="gtop"><button class="back" data-act="bb-back" aria-label="Atgal">‹</button><h1>'+esc(gameName(g))+'</h1><button class="x2" data-act="my" data-s="@game:edit:'+gid+'">Keisti</button></header>';
+  h+='<div class="note" style="margin-top:-6px">'+fmtShort(fromKey(g.date))+(g.title&&g.opp?' · '+esc(g.title):'')+' · <span class="sync" id="sync" style="display:inline-flex"><i></i> </span></div>';
+  h+='<section class="board"><div class="lscore"><div><div class="lbl">'+esc(name())+' taškai</div><span class="led" id="score">'+s.pts+'</span></div><div class="chips">'+
+    '<span class="chip">1 tšk. '+s.p1+'/'+s.a1+'</span><span class="chip">2 tšk. '+s.p2+'/'+s.a2+'</span><span class="chip">3 tšk. '+s.p3+'/'+s.a3+'</span>'+
+    '<span class="chip">Atk. '+s.reb+'</span><span class="chip">Perd. '+s.ast+'</span><span class="chip">Perim. '+s.stl+'</span></div></div></section>';
+  h+='<div class="bbg">'+btn('p1','make','+1','Baudos')+btn('p2','make','+2','Pataikė')+btn('p3','make','+3','Pataikė')+
+    btn('m1','miss','✗ 1','Nepataikė')+btn('m2','miss','✗ 2','Nepataikė')+btn('m3','miss','✗ 3','Nepataikė')+
+    btn('reb','oth','Atkovotas','kamuolys')+btn('ast','oth','Perdavimas','rezultatyvus')+btn('stl','oth','Perimtas','kamuolys')+'</div>';
+  h+='<button class="ghost bbundo" data-act="bb-undo" '+(last?'':'disabled')+'>↩︎ Atšaukti paskutinį'+(last?': '+BBT[last.t]:'')+'</button>';
+  if(ev.length)h+='<div class="lastev">Paskutiniai: '+ev.slice(-8).reverse().map(e=>'<span>'+BBT[e.t]+'</span>').join('')+'</div>';
+  h+=g.fin?'<button class="ghost" data-act="my" data-s="@game:fin:'+gid+'">Rezultatas: '+resultHTML(g)+' ✎</button>':'<button class="big" data-act="my" data-s="@game:fin:'+gid+'">🏁 Baigti varžybas</button>';
+  return h;
+}
+function renderLive(){
+  const gid=view.slice(5);
+  if(!I[gid]){view=ROLE==='parent'?null:'bb';render();return}
+  document.getElementById('app').innerHTML=liveHTML(gid);paintSync();
+}
+function ktCardHTML(kt){
+  const cfg=bbCfg(),child=ROLE==='child'||DEMO==='child';
+  let h='<div class="ktcard"><div><div class="lbl">Krepšinio taškai</div><div class="ktv">'+kt.bal+' KT</div><small>'+cfg.rate+' KT = 1 € · tai '+eur(Math.floor(kt.bal/(cfg.rate||10))*100)+'</small></div>'+
+    (child?(kt.bal>=cfg.min&&kt.bal>=cfg.rate?'<button class="small-btn" data-act="my" data-s="@bbx">Keisti į €</button>':'<small style="text-align:right;max-width:120px">Keisti galima nuo '+cfg.min+' KT</small>'):'')+'</div>';
+  kt.xs.filter(x=>x.status==='req').forEach(x=>{
+    h+='<div class="req"><span>💶 Prašymas: '+x.kt+' KT → '+eur(x.cents)+'</span>'+(child?'<small>Laukia tėvų patvirtinimo</small>':
+      '<button class="small-btn" data-act="bbx-set" data-id="'+x.id+'" data-st="ok">Patvirtinti</button><button class="ghost" style="min-height:44px" data-act="bbx-set" data-id="'+x.id+'" data-st="no">Atmesti</button>')+'</div>';
+  });
+  return h;
+}
+function bbPageHTML(){
+  const kt=ktState(),gs=games();
+  let h='<nav class="tabs subtabs" role="tablist">'+[['games','Varžybos'],['stats','Pasiekimai']].map(([id,l])=>'<button role="tab" aria-selected="'+(bbSub===id)+'" data-act="bb-sub" data-s="'+id+'">'+l+'</button>').join('')+'</nav>';
+  h+=ktCardHTML(kt);
+  if(bbSub==='stats')return h+bbStatsHTML(kt);
+  h+='<button class="big" data-act="my" data-s="@game:new">+ Naujos varžybos</button>';
+  if(!gs.length)h+='<p class="note">Varžybų dar nėra. Spauskite „Naujos varžybos“ prieš pat žaidimą, tada žymėkite kiekvieną metimą.</p>';
+  h+=gs.map(g=>{const s=gStats(g),d=fromKey(g.date);
+    return '<button class="gcard" data-act="bb-open" data-id="'+g.id+'"><span class="gdate">'+DAY_SHORT[d.getDay()]+'<br>'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'</span><span class="gmid"><b>'+esc(gameName(g))+(g.test?' (bandomosios)':'')+'</b><small>'+(g.title&&g.opp?esc(g.title)+' · ':'')+resultHTML(g)+'</small></span><span class="gpts">'+s.pts+'<small>tšk.</small></span></button>'}).join('');
+  return h;
+}
+function chartSVG(S){
+  const W=320,H=150,L=28,R=34,T=12,B=22,n=S.length,mx=Math.max(10,...S.map(x=>x.s.pts));
+  const X=i=>n===1?(L+W-R)/2:L+i*(W-L-R)/(n-1),Yp=v=>T+(H-T-B)*(1-v/mx),Yf=v=>T+(H-T-B)*(1-v);
+  const pts=S.map((x,i)=>X(i).toFixed(1)+','+Yp(x.s.pts).toFixed(1)).join(' ');
+  const fgs=S.map((x,i)=>x.s.fg==null?null:[X(i),Yf(x.s.fg)]).filter(Boolean);
+  let g='<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Taškai ir pataikymo procentas per varžybas">';
+  [0,.5,1].forEach(f=>{const y=T+(H-T-B)*(1-f);g+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)" stroke-width="1"/><text x="'+(L-4)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" fill="var(--ink-soft)">'+Math.round(mx*f)+'</text><text x="'+(W-R+4)+'" y="'+(y+4)+'" font-size="10" fill="var(--good)">'+Math.round(100*f)+'%</text>'});
+  if(n>1)g+='<polyline points="'+pts+'" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linejoin="round"/>';
+  if(fgs.length>1)g+='<polyline points="'+fgs.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')+'" fill="none" stroke="var(--good)" stroke-width="2" stroke-dasharray="5 4"/>';
+  S.forEach((x,i)=>{g+='<circle cx="'+X(i)+'" cy="'+Yp(x.s.pts)+'" r="4" fill="var(--accent)"/>';if(x.s.fg!=null)g+='<circle cx="'+X(i)+'" cy="'+Yf(x.s.fg)+'" r="3" fill="var(--good)"/>'});
+  const step=Math.max(1,Math.ceil(n/6));
+  S.forEach((x,i)=>{if(i%step===0||i===n-1)g+='<text x="'+X(i)+'" y="'+(H-6)+'" text-anchor="middle" font-size="10" fill="var(--ink-soft)">'+x.g.date.slice(5)+'</text>'});
+  return g+'</svg>';
+}
+function bbStatsHTML(kt){
+  const S=realFin().map(g=>({g,s:gStats(g)})),n=S.length;
+  let h='';
+  if(n){
+    const t=S.reduce((a,x)=>{['pts','reb','ast','stl','fgm','fga','p1','a1','p3','a3'].forEach(k=>a[k]=(a[k]||0)+x.s[k]);return a},{});
+    h+='<div class="panel"><h3>Vidurkis per '+n+' '+plural(n,'varžybas','varžybas','varžybų')+'</h3><div class="tiles">'+
+      [['Taškai',num1(t.pts/n)],['Atkovoti',num1(t.reb/n)],['Perdavimai',num1(t.ast/n)],['Perimti',num1(t.stl/n)],['Pataikymas (2+3)',pct(t.fga?t.fgm/t.fga:null)],['Baudos',pct(t.a1?t.p1/t.a1:null)]]
+      .map(([l,v])=>'<div class="tile"><b>'+v+'</b><span>'+l+'</span></div>').join('')+'</div></div>';
+    const rec=(k,f)=>S.reduce((b,x)=>(f?f(x):true)&&(b==null||x.s[k]>b.s[k])?x:b,null);
+    const rp=rec('pts'),rr=rec('reb'),ra=rec('ast'),rf=rec('fg',x=>x.s.fga>=4);
+    h+='<div class="panel"><h3>🏆 Asmeniniai rekordai</h3><div class="tiles">'+
+      [['Taškai',rp&&rp.s.pts,rp],['Atkovoti',rr&&rr.s.reb,rr],['Perdavimai',ra&&ra.s.ast,ra],['Pataikymas',rf?pct(rf.s.fg):'–',rf]]
+      .map(([l,v,x])=>'<div class="tile"><b>'+(v==null?'–':v)+'</b><span>'+l+(x?'<br>'+x.g.date.slice(5):'')+'</span></div>').join('')+'</div><p class="note">Pataikymo rekordui reikia bent 4 metimų (2+3) per varžybas.</p></div>';
+    h+='<div class="panel"><h3>📈 Kaip sekasi</h3><p class="note"><span style="color:var(--accent)">● taškai</span> &nbsp; <span style="color:var(--good)">● pataikymo % (2+3)</span></p>'+chartSVG(S)+'</div>';
+  }else h+='<p class="note">Kai užbaigsite pirmas varžybas, čia atsiras vidurkiai, rekordai ir grafikas.</p>';
+  h+='<div class="panel"><h3>🏅 Ženkliukai</h3><div class="badges">'+BADGES.map(b=>{const got=kt.aw.filter(a=>a.c===b.c);
+    return '<div class="badge'+(got.length?'':' off')+'"><i>'+b.i+'</i><span><b>'+b.n+(b.rep&&got.length>1?' ×'+got.length:'')+'</b><small>'+(got.length?(b.rep?'Paskutinį kartą ':'Gautas ')+got[got.length-1].date.slice(5)+' · +'+(bbCfg()[b.k]||0)+' KT':esc(b.d))+'</small></span></div>'}).join('')+'</div></div>';
+  if(kt.aw.length)h+='<div class="panel"><h3>Gauti krepšinio taškai</h3><ul class="alist">'+kt.aw.slice().reverse().slice(0,12).map(a=>'<li><span>'+a.icon+' '+esc(a.title)+' · '+a.date.slice(5)+(a.test?' (bandomosios)':'')+'</span><b>+'+a.kt+'</b></li>').join('')+'</ul></div>';
+  if(n)h+='<div class="panel"><h3>Visos varžybos</h3>'+(S.some(x=>x.g.test)?'<p class="note">Rodomos bandomosios varžybos. Kai atsiras tikrų, bus rodomos tik jos.</p>':'')+'<div class="tablebox"><table class="hist bbt"><thead><tr><th>Data</th><th>Tšk</th><th>1</th><th>2</th><th>3</th><th>%</th><th>Atk</th><th>Prd</th><th>Prm</th></tr></thead><tbody>'+
+    S.slice().reverse().map(({g,s})=>'<tr><td>'+g.date.slice(5)+'<br><small>'+esc(g.opp||g.title||'')+'</small></td><td class="n">'+s.pts+'</td><td class="n">'+s.p1+'/'+s.a1+'</td><td class="n">'+s.p2+'/'+s.a2+'</td><td class="n">'+s.p3+'/'+s.a3+'</td><td class="n">'+pct(s.fg)+'</td><td class="n">'+s.reb+'</td><td class="n">'+s.ast+'</td><td class="n">'+s.stl+'</td></tr>').join('')+
+    '</tbody></table></div><p class="note">1, 2, 3 – pataikyta/mesta. % – pataikymas iš žaidimo (2 ir 3 tšk.).</p></div>';
+  return h;
+}
+function renderChildBB(){
+  document.getElementById('app').innerHTML='<header class="gtop"><button class="back" data-act="bb-back" aria-label="Atgal">‹</button><h1>🏀 Krepšinis</h1><div class="sync" id="sync"><i></i> </div></header>'+bbPageHTML();
+  paintSync();
+}
+const seenKey=()=>'tl-bb-seen-'+(DEMO?'demo':KEY);
+// New awards → celebration, once per phone
+function checkCele(){
+  if(sheetFor||(view&&view.startsWith('live:'))||(ROLE==='parent'&&tab==='set'))return;
+  const aw=bbAwards().filter(a=>!a.test);let seen=[];try{seen=JSON.parse(localStorage.getItem(seenKey())||'[]')||[]}catch(e){}
+  const nw=aw.filter(a=>!seen.includes(a.key));if(!nw.length)return;
+  try{localStorage.setItem(seenKey(),JSON.stringify(seen.filter(k=>aw.some(a=>a.key===k)).concat(nw.map(a=>a.key))))}catch(e){}
+  celeList=nw;openSheet('@cele');confetti();ding(true);
+}
+function bbSave(a,el){
+  const parts=(sheetFor||'').slice(1).split(':'),mode=parts[1],gid=parts[2],gv=id=>{const e=document.getElementById(id);return e?e.value.trim():''};
+  if(a==='g-del'){if(!el.dataset.armed){el.dataset.armed='1';el.textContent='Tikrai ištrinti visas varžybas?';return}
+    saveItem(gid,'game',null);pendG=pendG.filter(o=>o.g!==gid);closeSheet();view=ROLE==='parent'?null:'bb';render();toast('Varžybos ištrintos');return}
+  const date=gv('gm-date'),opp=gv('gm-opp').slice(0,60),title=gv('gm-title').slice(0,60);
+  if(mode!=='fin'&&!/^\d{4}-\d{2}-\d{2}$/.test(date)){myErr('Pasirink datą.');return}
+  const nm=id=>{const v=gv(id);if(v==='')return null;const x=Number(v);return Number.isInteger(x)&&x>=0&&x<=999?x:NaN};
+  const us=nm('gm-us'),them=nm('gm-them');
+  if(Number.isNaN(us)||Number.isNaN(them)){myErr('Rezultatą įrašyk skaičiais, pvz. 54 ir 48.');return}
+  let res=gv('gm-res')||null;if(!res&&us!=null&&them!=null&&us!==them)res=us>them?'W':'L';
+  if(mode==='new'){const id=newId('g');saveItem(id,'game',{date,opp,title,us:null,them:null,res:null,fin:false,at:Date.now(),ev:[]});closeSheet();view='live:'+id;render();scrollTo(0,0);return}
+  const x=I[gid]&&I[gid].data;if(!x){closeSheet();return}
+  if(mode==='edit'){saveItem(gid,'game',Object.assign({},x,{date,opp,title,us,them,res}));closeSheet();render();toast('Išsaugota');return}
+  // finish: work out new awards, tell the parents, celebrate
+  const before=new Set(bbAwards().map(z=>z.key)),nd=Object.assign({},x,{us,them,res,fin:true});
+  I[gid]={kind:'game',data:nd};
+  const nw=bbAwards().filter(z=>!before.has(z.key)&&!z.test),s=gStats(nd);
+  const msg='🏀 '+name()+' '+gameName(nd)+': '+s.pts+' tšk. (baudos '+s.p1+'/'+s.a1+', 2 tšk. '+s.p2+'/'+s.a2+', 3 tšk. '+s.p3+'/'+s.a3+'), atkovoti '+s.reb+', perdavimai '+s.ast+', perimti '+s.stl+'.'+
+    (us!=null&&them!=null?' Rezultatas '+us+':'+them+(res==='W'?', pergalė!':'.'):'')+(nw.length?'\n🏅 '+nw.map(z=>z.icon+' '+z.title+' +'+z.kt+' KT').join(', '):'');
+  saveItem(gid,'game',nd,x.fin||x.test?null:msg);closeSheet();
+  if(ROLE==='parent'){view=null;tab='bb'}else view='bb';
+  render();scrollTo(0,0);if(!nw.length)toast(x.fin?'Išsaugota':'Varžybos baigtos');
 }
 
 /* ---------- sheets ---------- */
@@ -874,9 +1157,10 @@ setInterval(()=>{if(!timer)return;const el=document.getElementById('tleft');if(e
 function renderParent(){
   const d=today(),k=keyOf(d);
   let h='<header class="top"><div><h1>Tėvų skydelis</h1><p>'+fmtDate(d)+'</p></div><div class="sync" id="sync"><i></i> </div></header>';
-  h+='<nav class="tabs" role="tablist">'+[['today','Šiandien'],['hist','Istorija'],['set','Nustatymai'],['tg','Pranešimai']].map(([id,l])=>'<button role="tab" aria-selected="'+(tab===id)+'" data-act="tab" data-tab="'+id+'">'+l+'</button>').join('')+'</nav>';
+  h+='<nav class="tabs" role="tablist">'+[['today','Šiandien'],['hist','Istorija'],['bb','🏀'],['set','Nustatymai'],['tg','Telegram']].map(([id,l])=>'<button role="tab" aria-selected="'+(tab===id)+'" data-act="tab" data-tab="'+id+'">'+l+'</button>').join('')+'</nav>';
   if(tab==='today'){const pd=addDays(d,-pOff);h+=parentToday(pd,keyOf(pd))}
   if(tab==='hist')h+=parentHist(d);
+  if(tab==='bb')h+=bbPageHTML();
   if(tab==='set')h+=parentSettings();
   if(tab==='tg')h+=parentTg();
   document.getElementById('app').innerHTML=h;
@@ -916,7 +1200,7 @@ function parentToday(d,k){
   h+='</div>';
   const jp=journalPastHTML(d,0,7);
   h+='<div class="panel"><h3>📓 Sėkmės žurnalas</h3>'+(jp||'<p class="note">Per pastarąsias 7 dienas dar nieko neįrašyta.</p>')+'</div>';
-  const ds=itemsOf('dream'),bal=balance(),ms=itemsOf('money');
+  const ds=itemsOf('dream'),bal=balance(),ms=moneyItems();
   h+='<div class="panel"><h3>🌟 Svajonės ir pinigai</h3><p>Turi pinigų: <b>'+(ms.length?eur(bal):'dar neįrašyta')+'</b></p>'+
     (ds.length?'<div class="dreams">'+ds.map(x=>dreamCardHTML(x,bal,false)).join('')+'</div>':'<p class="note">Svajonių dar neįrašyta.</p>')+
     (ms.length?'<ul class="mlist">'+ms.slice(-8).reverse().map(x=>'<li><span>'+fmtShort(new Date(x.at))+' · '+esc(x.note||(x.amt>0?'Gavo':'Išleido'))+'</span><b class="'+(x.amt>0?'ok':'no')+'">'+(x.amt>0?'+':'')+eur(x.amt)+'</b></li>').join('')+'</ul>':'')+
@@ -948,6 +1232,9 @@ function parentSettings(){
     fld('Sekmadienį už kiekvieną ND, min','sunHwBonus',q.sunHwBonus,'number')+
     fld('Taisyklės galioja nuo','startDate',q.startDate,'date')+
   '</div><p class="note">Baudų nėra. Dienos lygis priklauso nuo svarbiausių užduočių: 🥉 nuo 40 %, 🥈 nuo 70 %, 🥇 visos. Iš penkių tai 2, 4 ir 5. Diena, kai nieko nepažymėta, neskaičiuojama.</p></div>';
+  {const b=Object.assign({},BB_DEF,q.bb||{});
+  h+='<div class="panel"><h3>🏀 Krepšinio taškai (KT)</h3><div class="grid2">'+[['first','Už pirmas varžybas'],['record','Už asmeninį rekordą'],['badge','Už naują ženkliuką'],['effort','Už pastangas (virš vidurkio)'],['star','Už „Kylanti žvaigždė“'],['rate','Kiek KT = 1 €'],['min','Mažiausiai KT keitimui']]
+    .map(([k,l])=>'<label class="f">'+l+'<input type="number" min="0" id="bb-'+k+'" data-bb="'+k+'" value="'+esc(b[k])+'"></label>').join('')+'</div><p class="note">KT kaupiami atskirai nuo dienos užduočių ir ekrano laiko. Vaikas gali prašyti juos iškeisti į pinigus, jūs patvirtinate skirtuke 🏀.</p></div>'}
   h+='<div class="panel"><h3>Krepšinio treniruotės</h3><div class="grid2">'+WEEK_ORDER.map(dw=>'<label class="f">'+DAY_LONG[dw]+'<input type="time" id="tr-'+dw+'" data-tr="'+dw+'" value="'+esc((q.training||{})[dw]||'')+'"></label>').join('')+'</div><p class="note">Palikite tuščią, jei tą dieną treniruotės nėra.</p></div>';
   h+='<div class="panel"><h3>Pamokų tvarkaraštis</h3><p class="note">Viena pamoka eilutėje, iš eilės.</p><div class="grid2">'+[1,2,3,4,5].map(dw=>'<label class="f">'+DAY_LONG[dw]+'<textarea id="tt-'+dw+'" data-tt="'+dw+'" rows="6">'+esc(((q.timetable||{})[dw]||[]).join('\n'))+'</textarea></label>').join('')+'</div>'+
     '<label class="f">Kuprinėje visada (po vieną eilutėje)<textarea id="bag-extra" data-bag="1" rows="4">'+esc((q.bagExtras||[]).join('\n'))+'</textarea></label>'+
@@ -1013,6 +1300,7 @@ async function tgSave(){
 async function saveConfig(){
   const q=draft;
   if(q.satBonusSilver==null)q.satBonusSilver=3;
+  if(q.bb){Object.keys(q.bb).forEach(k=>q.bb[k]=Math.max(0,parseInt(q.bb[k],10)||0));if(!q.bb.rate)q.bb.rate=10}
   ['dailyMax','satBonusPerDay','satBonusSilver','sunHwBonus'].forEach(f=>q[f]=Math.max(0,parseInt(q[f],10)||0));
   q.tasks.forEach(t=>{t.pts=Math.max(0,parseInt(t.pts,10)||0);t.timer=Math.max(0,parseInt(t.timer,10)||0)});
   try{await rpc('tl_save_config',{p_key:KEY,p_config:q});C=JSON.parse(JSON.stringify(q));dirty=false;draft=null;cacheSave();toast('Nustatymai išsaugoti');renderParent()}
@@ -1036,6 +1324,20 @@ document.addEventListener('click',e=>{
   if(a==='timer-stop'){timer=null;render();return}
   if(a==='sheet-close'){saveLesText();closeSheet();render();return}
   if(a==='my'){openSheet(el.dataset.s);return}
+  if(a==='bb-go'){view='bb';bbSub='games';render();scrollTo(0,0);return}
+  if(a==='bb-back'){view=view&&view.startsWith('live:')&&ROLE!=='parent'?'bb':null;render();scrollTo(0,0);return}
+  if(a==='bb-sub'){bbSub=el.dataset.s;render();return}
+  if(a==='bb-open'){view='live:'+el.dataset.id;render();scrollTo(0,0);return}
+  if(a==='bb-ev'){const gid=view&&view.startsWith('live:')?view.slice(5):null,t=el.dataset.t;if(!gid||!I[gid])return;addEv(gid,t);renderLive();
+    const b=document.querySelector('.bb[data-t="'+t+'"]');if(b){b.classList.add('hit');setTimeout(()=>b.classList.remove('hit'),220)}
+    fly(t[0]==='p'?'+'+t[1]:t[0]==='m'?'✗':'✓');try{navigator.vibrate&&navigator.vibrate(t[0]==='m'?[15,40,15]:25)}catch(e){}return}
+  if(a==='bb-undo'){const gid=view&&view.slice(5),last=gid&&undoEv(gid);renderLive();if(last)toast('Atšaukta: '+BBL[last.t]);return}
+  if(a==='bb-res'){const h=document.getElementById('gm-res'),on=h.value===el.dataset.r;h.value=on?'':el.dataset.r;el.parentNode.querySelectorAll('button').forEach(x=>x.classList.toggle('on',!on&&x===el));return}
+  if(a==='g-save'||a==='g-del'){bbSave(a,el);return}
+  if(a==='bbx-req'){const kt=ktState(),cfg=bbCfg(),e=Math.floor(kt.bal/(cfg.rate||10));if(e<1||kt.bal<cfg.min)return;
+    saveItem(newId('x'),'bbx',{kt:e*cfg.rate,cents:e*100,status:'req',at:Date.now()},'💶 '+name()+' nori iškeisti '+e*cfg.rate+' krepšinio taškų į '+eur(e*100)+'. Patvirtinkite tėvų skydelyje (skirtukas 🏀).');
+    closeSheet();render();toast('Prašymas išsiųstas tėvams');return}
+  if(a==='bbx-set'){const id=el.dataset.id,x=I[id]&&I[id].data;if(!x)return;saveItem(id,'bbx',Object.assign({},x,{status:el.dataset.st}));render();toast(el.dataset.st==='ok'?'Patvirtinta: '+eur(x.cents)+' pridėta prie vaiko pinigų':'Prašymas atmestas');return}
   if(a==='go'){const t=document.getElementById(el.dataset.to);if(t)t.scrollIntoView({block:'start'});return}
   if(['j-save','d-save','d-del','m-save'].includes(a)){mySave(a,el);return}
   if(a==='tt-scroll'){const t=document.getElementById('tvarkarastis');if(t)t.scrollIntoView({block:'start'});return}
@@ -1054,7 +1356,7 @@ return}
   if(a==='bag'){const r=rec(k,true);const it=el.dataset.item;r.bag[it]=!r.bag[it];saveDay(k,null);renderSheet();return}
   if(a==='bag-done'){const t=C.tasks.find(x=>x.id===sheetFor),de=dayExtras(today());closeSheet();markDone(t.id,de.items.length?'💶 Įdėjo: '+de.items.join(', '):null);return}
   // parent
-  if(a==='tab'){if(tab==='set'&&dirty&&el.dataset.tab!=='set'){toast('Pirma išsaugokite nustatymus');return}tab=el.dataset.tab;pOff=0;if(tab==='set'&&!dirty)draft=null;render();scrollTo(0,0);return}
+  if(a==='tab'){if(tab==='set'&&dirty&&el.dataset.tab!=='set'){toast('Pirma išsaugokite nustatymus');return}tab=el.dataset.tab;pOff=0;view=null;if(tab==='set'&&!dirty)draft=null;render();scrollTo(0,0);return}
   if(a==='x-add'){addTemp();return}
   if(a==='x-del'){delTemp(el);return}
   if(a==='p-day'){pOff=Math.min(7,Math.max(0,pOff+(+el.dataset.n)));render();return}
@@ -1104,6 +1406,7 @@ document.addEventListener('input',e=>{
   else if(el.dataset.tt){draft.timetable=draft.timetable||{};draft.timetable[el.dataset.tt]=el.value.split('\n').map(s=>s.trim()).filter(Boolean);draft.ttExample=false;markDirty()}
   else if(el.dataset.bag){draft.bagExtras=el.value.split('\n').map(s=>s.trim()).filter(Boolean);markDirty()}
   else if(el.dataset.bd){const o={};el.value.split('\n').forEach(line=>{const i=line.indexOf(':');if(i<1)return;const nm=line.slice(0,i).trim().toLowerCase();let dw=DAY_LONG.findIndex(x=>x.toLowerCase()===nm);if(dw<0)dw=DAY_SHORT.findIndex(x=>x.toLowerCase()===nm);if(dw<0)return;const its=line.slice(i+1).split(',').map(x=>x.trim()).filter(Boolean);if(its.length)o[dw]=its});draft.bagByDay=o;markDirty()}
+  else if(el.dataset.bb){draft.bb=Object.assign({},BB_DEF,draft.bb||{});draft.bb[el.dataset.bb]=el.value;markDirty()}
   else if(el.dataset.li){draft.lessonItems=parseLessonItems(el.value);markDirty()}
   else if(el.dataset.ti){const t=draft.tasks[+el.dataset.ti];t[el.dataset.f]=el.value;markDirty();if(el.dataset.f==='pts')refreshSums()}
 });
@@ -1117,8 +1420,12 @@ function showBadKey(){document.getElementById('app').innerHTML='<div class="cent
 let lastDay=keyOf(today());
 function render(){
   if(!C)return;
+  syncWake();
+  if(view&&view.startsWith('live:')){renderLive();return}
   if(ROLE==='parent'){if(tab==='set'&&document.querySelector('.savebar'))return;renderParent()}
+  else if(view==='bb')renderChildBB();
   else renderChild();
+  checkCele();
 }
 function renderForce(){if(ROLE==='parent'&&tab==='set'){renderParent();return}render()}
 function formBusy(){
@@ -1143,7 +1450,7 @@ async function boot(){
 // keep fresh: poll while visible, catch day changes
 setInterval(()=>{if(document.visibilityState!=='visible')return;if(keyOf(today())!==lastDay){lastDay=keyOf(today());pOff=0;closeSheet();timer=null;renderForce()}refresh()},20000);
 setInterval(()=>{if(document.visibilityState==='visible'&&ROLE!=='parent'&&!sheetFor)render()},60000);
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refresh()});
+document.addEventListener('visibilitychange',()=>{syncWake();if(document.visibilityState==='visible')refresh()});
 window.addEventListener('online',flush);
 boot();
 })();
