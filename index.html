@@ -179,7 +179,7 @@ h1,h2,h3{font-family:var(--f-display);font-weight:800;line-height:1.1;margin:0;t
 .mlist b{white-space:nowrap}
 .money .linkbtn{align-self:flex-start}
 .dreams{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.dream{display:flex;flex-direction:column;gap:6px;text-align:left;border:0;background:var(--surface);color:inherit;border-radius:var(--r);box-shadow:var(--shadow);padding:12px;min-height:128px;min-width:0;font:inherit}
+.dream{overflow:hidden;display:flex;flex-direction:column;gap:6px;text-align:left;border:0;background:var(--surface);color:inherit;border-radius:var(--r);box-shadow:var(--shadow);padding:12px;min-height:128px;min-width:0;font:inherit}
 .panel .dream{background:var(--surface-2);box-shadow:none;min-height:0}
 .dream.ok{background:var(--good-soft)}
 .dt{font-weight:900;font-size:16px;line-height:1.2}.dp{font-family:var(--f-display);font-weight:800;font-size:20px;color:var(--gold)}
@@ -233,6 +233,16 @@ h1,h2,h3{font-family:var(--f-display);font-weight:800;line-height:1.1;margin:0;t
 .big-i{font-size:64px;line-height:1}
 .alist{list-style:none;margin:0;padding:0;font-weight:800}
 .alist li{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid var(--line);font-size:14px;text-align:left}
+
+.phgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.phbtn,.phadd{aspect-ratio:1;border-radius:14px;overflow:hidden;border:0;padding:0;background:var(--surface-2);min-height:0}
+.phi{width:100%;height:100%;object-fit:cover;display:block}
+.phadd{border:3px dashed var(--line);background:transparent;font-size:30px;color:var(--accent);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-weight:800}
+.phadd small{font-size:13px}
+.gth{width:52px;height:52px;border-radius:10px;overflow:hidden;flex:none;background:var(--surface-2)}.gth img{width:100%;height:100%;object-fit:cover;display:block}
+.dimg{width:calc(100% + 24px);max-width:none;margin:-12px -12px 2px;aspect-ratio:4/3;object-fit:cover;display:block;border-radius:var(--r) var(--r) 0 0;background:var(--surface-2)}
+.dph{display:flex;flex-direction:column;gap:8px}.dphimg{width:100%;max-height:40vh;object-fit:cover;border-radius:14px;display:block;background:var(--surface-2)}
+.phbig{width:100%;max-height:65vh;object-fit:contain;border-radius:14px;background:#000;display:block;min-height:120px}
 
 /* Sheet */
 .veil{position:fixed;inset:0;background:rgba(6,10,20,.55);z-index:40;display:flex;align-items:flex-end;justify-content:center}
@@ -335,6 +345,7 @@ label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:80
 <div id="app" class="wrap"><div class="center"><h2>Kraunama…</h2></div></div>
 <div id="sheet" class="veil" hidden></div>
 <div id="toast" class="toast" hidden role="status" aria-live="polite"></div>
+<input type="file" id="ph-file" accept="image/*" hidden>
 <canvas id="confetti" hidden></canvas>
 <script>
 (function(){
@@ -432,6 +443,9 @@ let view=null;        // null | 'bb' (child basketball page) | 'live:<gameId>'
 let bbSub='games';
 let celeList=[];
 let wakeLock=null;
+let PM={};            // photos: id -> {o: owner id, k: 'game'|'dream', at}
+const PH=new Map(),phLoading=new Set(),phUp=new Map(),phDel=new Set();
+let phTarget=null,phPending=null;
 let syncState='wait';
 let tab='today';
 let pOff=0;           // parent view: 0 today, 1 yesterday…
@@ -441,8 +455,8 @@ let timer=null;       // {id,end,min}
 let sheetFor=null;
 let undoInfo=null;
 
-function cacheLoad(){try{const c=JSON.parse(localStorage.getItem(CACHE)||'null');if(c){C=c.C;D=c.D||{};pending=c.pending||{};I=c.I||{};pendI=c.pendI||{};pendG=c.pendG||[];ROLE=ROLE||c.ROLE;TG=c.TG||TG;CHILD_KEY=c.CHILD_KEY||''}}catch(e){}}
-function cacheSave(){try{localStorage.setItem(CACHE,JSON.stringify({C,D,pending,I,pendI,pendG,ROLE,TG,CHILD_KEY}))}catch(e){}}
+function cacheLoad(){try{const c=JSON.parse(localStorage.getItem(CACHE)||'null');if(c){C=c.C;D=c.D||{};pending=c.pending||{};I=c.I||{};pendI=c.pendI||{};pendG=c.pendG||[];PM=c.PM||{};ROLE=ROLE||c.ROLE;TG=c.TG||TG;CHILD_KEY=c.CHILD_KEY||''}}catch(e){}}
+function cacheSave(){try{localStorage.setItem(CACHE,JSON.stringify({C,D,pending,I,pendI,pendG,PM,ROLE,TG,CHILD_KEY}))}catch(e){}}
 
 async function rpc(fn,args){
   if(DEMO){
@@ -535,7 +549,8 @@ async function loadServer(){
     if(!cfg&&ROLE==='parent'&&!DEMO){await rpc('tl_save_config',{p_key:KEY,p_config:C})}
     const sd=res.days||{};
     Object.keys(sd).forEach(k=>{if(!pending[k]&&(seq[k]||0)===(seq0[k]||0))D[k]=sd[k]});
-    if(res.items&&itemVer===iv0){I=res.items;Object.keys(pendI).forEach(id=>{const v=pendI[id];if(v.data)I[id]={kind:v.kind,data:v.data};else delete I[id]});pendG.forEach(applyG)}
+    if(res.items&&itemVer===iv0){I=res.items;Object.keys(pendI).forEach(id=>{const v=pendI[id];if(v.data)I[id]={kind:v.kind,data:v.data};else delete I[id]});pendG.forEach(applyG);
+      if(res.photos){PM=res.photos;phUp.forEach((m,id)=>{PM[id]=m});phDel.forEach(id=>{delete PM[id]})}}
     if(res.tg)TG=res.tg;
     if(res.childKey)CHILD_KEY=res.childKey;
     syncState='ok';
@@ -755,7 +770,8 @@ function journalPastHTML(d,from,n){
 }
 function dreamCardHTML(x,bal,editable){
   const pct=Math.max(0,Math.min(100,Math.floor(bal*100/x.price))),left=x.price-bal,ok=left<=0;
-  const inner='<span class="dt">'+esc(x.title)+'</span><span class="dp">'+eur(x.price)+'</span><span class="dbar" aria-hidden="true"><i style="width:'+pct+'%"></i></span><span class="dl">'+(ok?'Pinigų užtenka! 🎉':'Trūksta '+eur(left))+'</span>';
+  const ph=photosOf(x.id)[0];
+  const inner=(ph?phImg(ph,'dimg'):'')+'<span class="dt">'+esc(x.title)+'</span><span class="dp">'+eur(x.price)+'</span><span class="dbar" aria-hidden="true"><i style="width:'+pct+'%"></i></span><span class="dl">'+(ok?'Pinigų užtenka! 🎉':'Trūksta '+eur(left))+'</span>';
   return editable?'<button class="dream'+(ok?' ok':'')+'" data-act="my" data-s="@dream:'+x.id+'">'+inner+'</button>':'<div class="dream'+(ok?' ok':'')+'">'+inner+'</div>';
 }
 function quickHTML(r){
@@ -789,7 +805,10 @@ function renderMySheet(el){
   }else if(kind==='dream'){
     const x=arg==='new'?null:(I[arg]&&I[arg].data);if(arg!=='new'&&!x){closeSheet();return}
     b=head('🌟',x?'Mano svajonė':'Nauja svajonė')+'<label class="f">Apie ką svajoju<input type="text" id="my-title" value="'+esc(x?x.title:'')+'" placeholder="Pvz. naujas krepšinio kamuolys" maxlength="60" autocomplete="off"></label>'+
-      '<label class="f">Kiek reikia pinigų, €<input type="text" inputmode="decimal" id="my-amt" value="'+(x?String(x.price/100).replace('.',','):'')+'" placeholder="Pvz. 35" maxlength="10" autocomplete="off"></label>'+err+
+      '<label class="f">Kiek reikia pinigų, €<input type="text" inputmode="decimal" id="my-amt" value="'+(x?String(x.price/100).replace('.',','):'')+'" placeholder="Pvz. 35" maxlength="10" autocomplete="off"></label>'+
+      (()=>{const ph=x?photosOf(arg)[0]:null,src=ph?null:phPending;
+        return '<div class="dph">'+(ph?phImg(ph,'dphimg'):src?'<img class="dphimg" src="'+src+'" alt="">':'')+'<div class="btns"><button class="ghost" data-act="ph-add" data-k="dream" data-o="'+(x?arg:'new')+'" style="min-height:48px">📷 '+(ph||src?'Pakeisti nuotrauką':'Pridėti nuotrauką')+'</button>'+
+          (ph?'<button class="ghost" data-act="ph-del" data-id="'+ph+'" style="min-height:48px">Ištrinti nuotrauką</button>':'')+'</div></div>'})()+err+
       '<button class="big" data-act="d-save">Išsaugoti</button>'+(x?'<button class="ghost" data-act="d-del">Ištrinti svajonę</button>':'');
   }else if(kind==='game'){
     const p=sheetFor.slice(1).split(':'),mode=p[1],gid=p[2],x=gid&&I[gid]?I[gid].data:null;
@@ -804,6 +823,10 @@ function renderMySheet(el){
     b+=err+'<button class="big" data-act="g-save">'+(mode==='new'?'Pradėti žymėti':fin?(x.fin?'Išsaugoti':'Baigti varžybas'):'Išsaugoti')+'</button>';
     if(fin)b+='<p class="note">Rezultatą galima palikti tuščią ir įrašyti vėliau. Užbaigus varžybas paskaičiuojami rekordai ir ženkliukai.</p>';
     if(mode==='edit')b+='<button class="ghost" data-act="g-del">Ištrinti varžybas</button>';
+  }else if(kind==='photo'){
+    const m=PM[arg];if(!m){closeSheet();return}
+    const owner=I[m.o]&&I[m.o].data,cap=m.k==='game'?(owner?gameName(owner)+' · '+fmtShort(fromKey(owner.date)):'Varžybos'):(owner?owner.title:'Svajonė');
+    b=head('📷',cap)+phImg(arg,'phbig')+(canEditPhoto(arg)?'<button class="ghost" data-act="ph-del" data-id="'+arg+'">Ištrinti nuotrauką</button>':'');
   }else if(kind==='bbx'){
     const kt=ktState(),cfg=bbCfg(),euros=Math.floor(kt.bal/(cfg.rate||10));
     b=head('💶','Keisti į pinigus')+'<p>Turi <b>'+kt.bal+' KT</b>. '+cfg.rate+' KT = 1 €.</p>'+
@@ -817,7 +840,7 @@ function renderMySheet(el){
     b=head(T[0],T[1])+'<p class="note" style="font-size:14px">Dabar įrašyta: '+eur(balance())+'</p><label class="f">'+T[2]+'<input type="text" inputmode="decimal" id="my-amt" placeholder="Pvz. 12,50" maxlength="10" autocomplete="off"></label>'+
       (T[3]?'<label class="f">'+T[3]+'<input type="text" id="my-note" placeholder="'+T[4]+'" maxlength="60" autocomplete="off"></label>':'')+err+'<button class="big" data-act="m-save">Įrašyti</button>';
   }
-  el.innerHTML=b+'</div>';el.hidden=false;el.dataset.for=sheetFor;
+  el.innerHTML=b+'</div>';el.hidden=false;el.dataset.for=sheetFor;fillPhotos();
 }
 function myErr(t){const e=document.getElementById('my-err');if(e){e.textContent=t;e.hidden=false}}
 // Saves whatever is typed; also runs when the sheet is closed, so nothing is lost
@@ -837,7 +860,7 @@ function mySave(a,el){
     const title=document.getElementById('my-title').value.trim().slice(0,60);
     if(!title){myErr('Įrašyk, apie ką svajoji.');return}
     if(!amt){myErr('Įrašyk sumą skaičiais, pvz. 35 arba 12,50.');return}
-    if(arg==='new'){if(itemsOf('dream').length>=MAX_DREAMS){myErr('Jau yra '+MAX_DREAMS+' svajonės.');return}saveItem(newId('d'),'dream',{title,price:amt,at:Date.now()})}
+    if(arg==='new'){if(itemsOf('dream').length>=MAX_DREAMS){myErr('Jau yra '+MAX_DREAMS+' svajonės.');return}const nid=newId('d');saveItem(nid,'dream',{title,price:amt,at:Date.now()});if(phPending){const d=phPending;phPending=null;uploadPhoto('dream',nid,d)}}
     else saveItem(arg,'dream',{title,price:amt,at:I[arg].data.at});
     closeSheet();render();toast('Svajonė išsaugota 🌟');return;
   }
@@ -849,6 +872,56 @@ function mySave(a,el){
   if(arg==='set'){diff=amt-bal;note=first?'Jau turėjau':'Pataisyta suma'}
   if(diff)saveItem(newId('m'),'money',{amt:diff,note,at:Date.now()});
   closeSheet();render();if(arg==='plus')ding(false);toast('Dabar turi '+eur(balance()));
+}
+
+/* ---------- photos (games and dreams) ---------- */
+const photosOf=o=>Object.keys(PM).filter(id=>PM[id].o===o).sort((a,b)=>PM[a].at-PM[b].at);
+const phImg=(id,cls)=>'<img class="'+cls+'" data-ph="'+id+'" alt=""'+(PH.has(id)?' src="'+PH.get(id)+'"':'')+'>';
+function fillPhotos(){
+  document.querySelectorAll('img[data-ph]').forEach(async im=>{
+    const id=im.dataset.ph;if(PH.has(id)){if(!im.getAttribute('src'))im.src=PH.get(id);return}
+    if(phLoading.has(id)||DEMO)return;phLoading.add(id);
+    try{const d=await rpc('tl_photo_get',{p_key:KEY,p_id:id});if(d){PH.set(id,d);document.querySelectorAll('img[data-ph="'+id+'"]').forEach(x=>{x.src=d})}}catch(e){}
+    phLoading.delete(id);
+  });
+}
+// Phone photos are big: shrink to 1280 px JPEG before sending
+async function shrink(file){
+  const url=URL.createObjectURL(file);
+  try{
+    const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url});
+    const w=img.naturalWidth,h=img.naturalHeight;if(!w||!h)throw new Error('bad');
+    const sc=Math.min(1,1280/Math.max(w,h)),c=document.createElement('canvas');c.width=Math.round(w*sc);c.height=Math.round(h*sc);
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+    let q=.8,d=c.toDataURL('image/jpeg',q);while(d.length>650000&&q>.35){q-=.1;d=c.toDataURL('image/jpeg',q)}
+    if(d.length>650000)throw new Error('big');return d;
+  }finally{URL.revokeObjectURL(url)}
+}
+function rerender(){if(sheetFor)renderSheet();render()}
+function pickPhoto(kind,owner){phTarget={kind,owner};const i=document.getElementById('ph-file');i.value='';i.click()}
+async function uploadPhoto(kind,owner,data){
+  const id=newId('p'),m={o:owner,k:kind,at:Date.now()};PH.set(id,data);
+  if(kind==='dream')photosOf(owner).forEach(x=>{delete PM[x]}); // a dream keeps one photo
+  PM[id]=m;phUp.set(id,m);itemVer++;rerender();toast('Įkeliama nuotrauka…');
+  try{
+    if(!DEMO){
+      for(let i=0;i<60&&(pendI[owner]||flushing);i++)await new Promise(r=>setTimeout(r,250)); // the game or dream must be saved first
+      await rpc('tl_photo_add',{p_key:KEY,p_id:id,p_kind:kind,p_owner:owner,p_data:data});
+    }
+    toast('Nuotrauka įkelta 📷');
+  }catch(e){delete PM[id];toast(e.message==='too_many'?'Per daug nuotraukų':'Nepavyko įkelti nuotraukos. Patikrinkite internetą ir bandykite dar kartą.')}
+  phUp.delete(id);itemVer++;cacheSave();rerender();
+}
+async function delPhoto(id){
+  const m=PM[id];if(!m)return;delete PM[id];phDel.add(id);itemVer++;rerender();
+  try{if(!DEMO)await rpc('tl_photo_del',{p_key:KEY,p_id:id});toast('Nuotrauka ištrinta')}catch(e){PM[id]=m;toast('Nepavyko ištrinti')}
+  phDel.delete(id);itemVer++;cacheSave();rerender();
+}
+const canEditPhoto=id=>PM[id]&&(PM[id].k==='game'||ROLE==='child');
+function photoGridHTML(owner,kind,max){
+  const ph=photosOf(owner);
+  return '<div class="phgrid">'+ph.map(id=>'<button class="phbtn" data-act="my" data-s="@photo:'+id+'" aria-label="Atidaryti nuotrauką">'+phImg(id,'phi')+'</button>').join('')+
+    (ph.length<max?'<button class="phadd" data-act="ph-add" data-k="'+kind+'" data-o="'+owner+'">📷<small>Pridėti</small></button>':'')+'</div>';
 }
 
 /* ---------- basketball ---------- */
@@ -946,6 +1019,7 @@ function liveHTML(gid){
   h+='<button class="ghost bbundo" data-act="bb-undo" '+(last?'':'disabled')+'>↩︎ Atšaukti paskutinį'+(last?': '+BBT[last.t]:'')+'</button>';
   if(ev.length)h+='<div class="lastev">Paskutiniai: '+ev.slice(-8).reverse().map(e=>'<span>'+BBT[e.t]+'</span>').join('')+'</div>';
   h+=g.fin?'<button class="ghost" data-act="my" data-s="@game:fin:'+gid+'">Rezultatas: '+resultHTML(g)+' ✎</button>':'<button class="big" data-act="my" data-s="@game:fin:'+gid+'">🏁 Baigti varžybas</button>';
+  h+='<section class="part"><h2>📷 Nuotraukos <span>'+photosOf(gid).length+'/12</span></h2>'+photoGridHTML(gid,'game',12)+'</section>';
   return h;
 }
 function renderLive(){
@@ -971,7 +1045,7 @@ function bbPageHTML(){
   h+='<button class="big" data-act="my" data-s="@game:new">+ Naujos varžybos</button>';
   if(!gs.length)h+='<p class="note">Varžybų dar nėra. Spauskite „Naujos varžybos“ prieš pat žaidimą, tada žymėkite kiekvieną metimą.</p>';
   h+=gs.map(g=>{const s=gStats(g),d=fromKey(g.date);
-    return '<button class="gcard" data-act="bb-open" data-id="'+g.id+'"><span class="gdate">'+DAY_SHORT[d.getDay()]+'<br>'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'</span><span class="gmid"><b>'+esc(gameName(g))+(g.test?' (bandomosios)':'')+'</b><small>'+(g.title&&g.opp?esc(g.title)+' · ':'')+resultHTML(g)+'</small></span><span class="gpts">'+s.pts+'<small>tšk.</small></span></button>'}).join('');
+    return '<button class="gcard" data-act="bb-open" data-id="'+g.id+'"><span class="gdate">'+DAY_SHORT[d.getDay()]+'<br>'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'</span><span class="gmid"><b>'+esc(gameName(g))+(g.test?' (bandomosios)':'')+'</b><small>'+(g.title&&g.opp?esc(g.title)+' · ':'')+resultHTML(g)+'</small></span>'+(photosOf(g.id).length?'<span class="gth">'+phImg(photosOf(g.id)[0],'')+'</span>':'')+'<span class="gpts">'+s.pts+'<small>tšk.</small></span></button>'}).join('');
   return h;
 }
 function chartSVG(S){
@@ -1005,6 +1079,8 @@ function bbStatsHTML(kt){
   }else h+='<p class="note">Kai užbaigsite pirmas varžybas, čia atsiras vidurkiai, rekordai ir grafikas.</p>';
   h+='<div class="panel"><h3>🏅 Ženkliukai</h3><div class="badges">'+BADGES.map(b=>{const got=kt.aw.filter(a=>a.c===b.c);
     return '<div class="badge'+(got.length?'':' off')+'"><i>'+b.i+'</i><span><b>'+b.n+(b.rep&&got.length>1?' ×'+got.length:'')+'</b><small>'+(got.length?(b.rep?'Paskutinį kartą ':'Gautas ')+got[got.length-1].date.slice(5)+' · +'+(bbCfg()[b.k]||0)+' KT':esc(b.d))+'</small></span></div>'}).join('')+'</div></div>';
+  {const all=games().flatMap(g=>photosOf(g.id).map(id=>({id,g}))).slice(0,9);
+   if(all.length)h+='<div class="panel"><h3>📷 Akimirkos</h3><div class="phgrid">'+all.map(x=>'<button class="phbtn" data-act="my" data-s="@photo:'+x.id+'" aria-label="Nuotrauka: '+esc(gameName(x.g))+'">'+phImg(x.id,'phi')+'</button>').join('')+'</div></div>'}
   if(kt.aw.length)h+='<div class="panel"><h3>Gauti krepšinio taškai</h3><ul class="alist">'+kt.aw.slice().reverse().slice(0,12).map(a=>'<li><span>'+a.icon+' '+esc(a.title)+' · '+a.date.slice(5)+(a.test?' (bandomosios)':'')+'</span><b>+'+a.kt+'</b></li>').join('')+'</ul></div>';
   if(n)h+='<div class="panel"><h3>Visos varžybos</h3>'+(S.some(x=>x.g.test)?'<p class="note">Rodomos bandomosios varžybos. Kai atsiras tikrų, bus rodomos tik jos.</p>':'')+'<div class="tablebox"><table class="hist bbt"><thead><tr><th>Data</th><th>Tšk</th><th>1</th><th>2</th><th>3</th><th>%</th><th>Atk</th><th>Prd</th><th>Prm</th></tr></thead><tbody>'+
     S.slice().reverse().map(({g,s})=>'<tr><td>'+g.date.slice(5)+'<br><small>'+esc(g.opp||g.title||'')+'</small></td><td class="n">'+s.pts+'</td><td class="n">'+s.p1+'/'+s.a1+'</td><td class="n">'+s.p2+'/'+s.a2+'</td><td class="n">'+s.p3+'/'+s.a3+'</td><td class="n">'+pct(s.fg)+'</td><td class="n">'+s.reb+'</td><td class="n">'+s.ast+'</td><td class="n">'+s.stl+'</td></tr>').join('')+
@@ -1050,10 +1126,15 @@ function bbSave(a,el){
 
 /* ---------- sheets ---------- */
 function openSheet(id){sheetFor=id;jDay=id==='@journal'?keyOf(today()):null;jStart=jDay?journalCount(rec(jDay)):0;renderSheet()}
-function closeSheet(){if(sheetFor==='@journal')saveJournal();sheetFor=null;jDay=null;const el=document.getElementById('sheet');el.hidden=true;el.innerHTML=''}
+function closeSheet(){if(sheetFor==='@journal')saveJournal();if(sheetFor&&sheetFor.startsWith('@dream'))phPending=null;sheetFor=null;jDay=null;const el=document.getElementById('sheet');el.hidden=true;el.innerHTML=''}
 function renderSheet(){
   const el=document.getElementById('sheet');if(!sheetFor){closeSheet();return}
-  if(sheetFor.startsWith('@')){hideToast();renderMySheet(el);return}
+  if(sheetFor.startsWith('@')){
+    // keep what was typed when the same sheet is drawn again (e.g. after adding a photo)
+    const keep=el.dataset.for===sheetFor?[...el.querySelectorAll('input[id]')].map(i=>[i.id,i.value]):[];
+    hideToast();renderMySheet(el);
+    keep.forEach(([id,v])=>{const i=document.getElementById(id);if(i&&i.type!=='file')i.value=v});
+    return}
   const d=today(),k=keyOf(d),r=rec(k),t=C.tasks.find(x=>x.id===sheetFor);if(!t){closeSheet();return}
   const done=!!r.done[t.id];
   let b='<div class="sheet" role="dialog" aria-modal="true" aria-label="'+esc(t.title)+'"><div class="sheet-head"><span style="font-size:34px">'+esc(t.icon)+'</span><h2>'+esc(t.title)+'</h2><button class="x" data-act="sheet-close" aria-label="Uždaryti">×</button></div>';
@@ -1324,6 +1405,8 @@ document.addEventListener('click',e=>{
   if(a==='timer-stop'){timer=null;render();return}
   if(a==='sheet-close'){saveLesText();closeSheet();render();return}
   if(a==='my'){openSheet(el.dataset.s);return}
+  if(a==='ph-add'){pickPhoto(el.dataset.k,el.dataset.o);return}
+  if(a==='ph-del'){if(!el.dataset.armed){el.dataset.armed='1';el.textContent='Tikrai ištrinti nuotrauką?';return}const id=el.dataset.id;if(sheetFor&&sheetFor.startsWith('@photo'))closeSheet();delPhoto(id);return}
   if(a==='bb-go'){view='bb';bbSub='games';render();scrollTo(0,0);return}
   if(a==='bb-back'){view=view&&view.startsWith('live:')&&ROLE!=='parent'?'bb':null;render();scrollTo(0,0);return}
   if(a==='bb-sub'){bbSub=el.dataset.s;render();return}
@@ -1370,6 +1453,13 @@ return}
   if(a==='copy'){const inp=document.getElementById(el.dataset.target);const v=inp.value;(navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>toast('Nukopijuota')).catch(()=>{inp.select();toast('Pažymėta, nukopijuokite')});return}
   if(a==='tg-find'){tgFind();return}
   if(a==='tg-save'){tgSave();return}
+});
+document.getElementById('ph-file').addEventListener('change',async e=>{
+  const f=e.target.files&&e.target.files[0],t=phTarget;phTarget=null;if(!f||!t)return;
+  toast('Ruošiama nuotrauka…');let data;
+  try{data=await shrink(f)}catch(err){toast('Šios nuotraukos atidaryti nepavyko');return}
+  if(t.owner==='new'){phPending=data;renderSheet();toast('Nuotrauka bus pridėta, kai išsaugosi svajonę');return}
+  uploadPhoto(t.kind,t.owner,data);
 });
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='hw-input'){e.preventDefault();addHw()}if(e.key==='Escape'&&sheetFor)closeSheet()});
 document.getElementById('sheet').addEventListener('click',e=>{if(e.target.id==='sheet'){closeSheet();render()}});
@@ -1421,11 +1511,11 @@ let lastDay=keyOf(today());
 function render(){
   if(!C)return;
   syncWake();
-  if(view&&view.startsWith('live:')){renderLive();return}
+  if(view&&view.startsWith('live:')){renderLive();fillPhotos();return}
   if(ROLE==='parent'){if(tab==='set'&&document.querySelector('.savebar'))return;renderParent()}
   else if(view==='bb')renderChildBB();
   else renderChild();
-  checkCele();
+  checkCele();fillPhotos();
 }
 function renderForce(){if(ROLE==='parent'&&tab==='set'){renderParent();return}render()}
 function formBusy(){
